@@ -1,0 +1,478 @@
+{% comment %}
+  Archivo: sections/mosaic-grid.liquid
+  Sección de Mosaicos con diseño flexible para Dawn Theme
+{% endcomment %}
+
+{{ 'section-mosaic-grid.css' | asset_url | stylesheet_tag }}
+
+<div class="mosaic-grid-section page-width-{{ section.settings.page_width }}">
+  <div class="mosaic-grid-container">
+    
+    {% comment %} Mosaico Grande (Izquierda) {% endcomment %}
+    {% for block in section.blocks %}
+      {% if block.type == 'large_tile' %}
+        <div class="mosaic-tile mosaic-tile--large" {{ block.shopify_attributes }}>
+          <div class="mosaic-tile__background">
+            {% if block.settings.image %}
+              {{ block.settings.image | image_url: width: 1200 | image_tag: 
+                alt: block.settings.image.alt | default: block.settings.title,
+                loading: 'lazy',
+                class: 'mosaic-tile__image'
+              }}
+            {% else %}
+              <div class="mosaic-tile__gradient" style="background: linear-gradient(135deg, {{ block.settings.gradient_start }}, {{ block.settings.gradient_end }});"></div>
+            {% endif %}
+          </div>
+          a
+          <div class="mosaic-tile__content">
+            {% if block.settings.badge_text != blank %}
+              <span class="mosaic-tile__badge">{{ block.settings.badge_text }}</span>
+            {% endif %}
+            
+            {% if block.settings.title != blank %}
+              <h2 class="mosaic-tile__title mosaic-tile__title--large">{{ block.settings.title }}</h2>
+            {% endif %}
+            
+            {% if block.settings.description != blank %}
+              <p class="mosaic-tile__description">{{ block.settings.description }}</p>
+            {% endif %}
+            
+            {% if block.settings.button_text != blank and block.settings.button_link != blank %}
+              <a href="{{ block.settings.button_link }}" 
+                 class="mosaic-tile__button button button--{{ block.settings.button_style }}"
+                 {% if block.settings.open_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                {{ block.settings.button_text }}
+              </a>
+            {% endif %}
+          </div>
+          
+          {% if block.settings.decorative_icon != blank %}
+            <div class="mosaic-tile__icon mosaic-tile__icon--{{ block.settings.icon_position }}">
+              {{ block.settings.decorative_icon }}
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endfor %}
+    
+    {% comment %} Contenedor de Mosaicos Pequeños (Derecha) {% endcomment %}
+    <div class="mosaic-tiles-small">
+      {% for block in section.blocks %}
+        {% if block.type == 'small_tile' %}
+          <div class="mosaic-tile mosaic-tile--small mosaic-tile--{{ block.settings.tile_color_scheme }}" {{ block.shopify_attributes }}>
+            <div class="mosaic-tile__background">
+              {% if block.settings.image %}
+                {{ block.settings.image | image_url: width: 600 | image_tag: 
+                  alt: block.settings.image.alt | default: block.settings.title,
+                  loading: 'lazy',
+                  class: 'mosaic-tile__image'
+                }}
+              {% else %}
+                <div class="mosaic-tile__gradient" style="background: linear-gradient(135deg, {{ block.settings.gradient_start }}, {{ block.settings.gradient_end }});"></div>
+              {% endif %}
+            </div>
+            
+            <div class="mosaic-tile__content">
+              {% if block.settings.badge_text != blank %}
+                <span class="mosaic-tile__badge mosaic-tile__badge--small">{{ block.settings.badge_text }}</span>
+              {% endif %}
+              
+              {% if block.settings.title != blank %}
+                <h3 class="mosaic-tile__title">{{ block.settings.title }}</h3>
+              {% endif %}
+              
+              {% if block.settings.description != blank %}
+                <p class="mosaic-tile__description mosaic-tile__description--small">{{ block.settings.description }}</p>
+              {% endif %}
+              
+              {% if block.settings.button_text != blank and block.settings.button_link != blank %}
+                <a href="{{ block.settings.button_link }}" 
+                   class="mosaic-tile__button button button--{{ block.settings.button_style }}"
+                   {% if block.settings.open_new_tab %}target="_blank" rel="noopener"{% endif %}>
+                  {{ block.settings.button_text }}
+                </a>
+              {% endif %}
+            </div>
+            
+            {% if block.settings.decorative_icon != blank %}
+              <div class="mosaic-tile__icon mosaic-tile__icon--{{ block.settings.icon_position }}">
+                {{ block.settings.decorative_icon }}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Mosaico de Contenido",
+  "tag": "section",
+  "class": "mosaic-grid-wrapper",
+  "max_blocks": 5,
+  "settings": [
+    {
+      "type": "select",
+      "id": "page_width",
+      "label": "Ancho de la sección",
+      "options": [
+        {
+          "value": "full",
+          "label": "Ancho completo"
+        },
+        {
+          "value": "standard",
+          "label": "Ancho estándar"
+        }
+      ],
+      "default": "standard"
+    },
+    {
+      "type": "header",
+      "content": "Espaciado"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Espaciado superior",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Espaciado inferior",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "large_tile",
+      "name": "Mosaico Grande",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "header",
+          "content": "Contenido"
+        },
+        {
+          "type": "text",
+          "id": "badge_text",
+          "label": "Texto de etiqueta",
+          "default": "Ofertas y Promociones"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Título",
+          "default": "No te quedes fuera"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Descripción",
+          "default": "Aprovecha las ofertas en herramientas profesionales"
+        },
+        {
+          "type": "header",
+          "content": "Fondo"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Imagen de fondo"
+        },
+        {
+          "type": "color",
+          "id": "gradient_start",
+          "label": "Color gradiente inicio",
+          "default": "#C85310"
+        },
+        {
+          "type": "color",
+          "id": "gradient_end",
+          "label": "Color gradiente fin",
+          "default": "#E74C3C"
+        },
+        {
+          "type": "header",
+          "content": "Botón"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Texto del botón",
+          "default": "Ver Más"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "Enlace del botón"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Estilo del botón",
+          "options": [
+            {
+              "value": "primary",
+              "label": "Primario"
+            },
+            {
+              "value": "secondary",
+              "label": "Secundario"
+            },
+            {
+              "value": "outline",
+              "label": "Contorno"
+            }
+          ],
+          "default": "secondary"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_new_tab",
+          "label": "Abrir en nueva pestaña",
+          "default": false
+        },
+        {
+          "type": "header",
+          "content": "Icono decorativo"
+        },
+        {
+          "type": "html",
+          "id": "decorative_icon",
+          "label": "SVG del icono (opcional)",
+          "info": "Pega el código SVG del icono decorativo"
+        },
+        {
+          "type": "select",
+          "id": "icon_position",
+          "label": "Posición del icono",
+          "options": [
+            {
+              "value": "bottom-right",
+              "label": "Abajo derecha"
+            },
+            {
+              "value": "bottom-left",
+              "label": "Abajo izquierda"
+            },
+            {
+              "value": "top-right",
+              "label": "Arriba derecha"
+            }
+          ],
+          "default": "bottom-right"
+        }
+      ]
+    },
+    {
+      "type": "small_tile",
+      "name": "Mosaico Pequeño",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "header",
+          "content": "Contenido"
+        },
+        {
+          "type": "text",
+          "id": "badge_text",
+          "label": "Texto de etiqueta",
+          "default": "Lo mejor de lo mejor"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Título",
+          "default": "Herramientas Premium"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Descripción",
+          "default": "Todo lo que necesitas está aquí"
+        },
+        {
+          "type": "header",
+          "content": "Fondo"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Imagen de fondo"
+        },
+        {
+          "type": "color",
+          "id": "gradient_start",
+          "label": "Color gradiente inicio",
+          "default": "#2C3E50"
+        },
+        {
+          "type": "color",
+          "id": "gradient_end",
+          "label": "Color gradiente fin",
+          "default": "#34495E"
+        },
+        {
+          "type": "select",
+          "id": "tile_color_scheme",
+          "label": "Esquema de color",
+          "options": [
+            {
+              "value": "dark",
+              "label": "Oscuro"
+            },
+            {
+              "value": "blue",
+              "label": "Azul"
+            },
+            {
+              "value": "green",
+              "label": "Verde"
+            },
+            {
+              "value": "purple",
+              "label": "Morado"
+            },
+            {
+              "value": "custom",
+              "label": "Personalizado"
+            }
+          ],
+          "default": "dark"
+        },
+        {
+          "type": "header",
+          "content": "Botón"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "Texto del botón",
+          "default": "Ver Más"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "Enlace del botón"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Estilo del botón",
+          "options": [
+            {
+              "value": "primary",
+              "label": "Primario"
+            },
+            {
+              "value": "secondary",
+              "label": "Secundario"
+            },
+            {
+              "value": "outline",
+              "label": "Contorno"
+            }
+          ],
+          "default": "secondary"
+        },
+        {
+          "type": "checkbox",
+          "id": "open_new_tab",
+          "label": "Abrir en nueva pestaña",
+          "default": false
+        },
+        {
+          "type": "header",
+          "content": "Icono decorativo"
+        },
+        {
+          "type": "html",
+          "id": "decorative_icon",
+          "label": "SVG del icono (opcional)",
+          "info": "Pega el código SVG del icono decorativo"
+        },
+        {
+          "type": "select",
+          "id": "icon_position",
+          "label": "Posición del icono",
+          "options": [
+            {
+              "value": "bottom-right",
+              "label": "Abajo derecha"
+            },
+            {
+              "value": "bottom-left",
+              "label": "Abajo izquierda"
+            },
+            {
+              "value": "top-right",
+              "label": "Arriba derecha"
+            }
+          ],
+          "default": "bottom-right"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Mosaico de Contenido",
+      "blocks": [
+        {
+          "type": "large_tile",
+          "settings": {
+            "badge_text": "Ofertas y Promociones",
+            "title": "No te quedes fuera",
+            "description": "Aprovecha las ofertas en herramientas profesionales",
+            "button_text": "Ver Más",
+            "gradient_start": "#C85310",
+            "gradient_end": "#E74C3C"
+          }
+        },
+        {
+          "type": "small_tile",
+          "settings": {
+            "badge_text": "Lo mejor de lo mejor",
+            "title": "Herramientas Premium",
+            "description": "Todo lo que necesitas está aquí",
+            "button_text": "Ver Más",
+            "tile_color_scheme": "dark"
+          }
+        },
+        {
+          "type": "small_tile",
+          "settings": {
+            "badge_text": "Potencia y precisión",
+            "title": "Herramientas Eléctricas",
+            "description": "Máxima eficiencia",
+            "button_text": "Ver Más",
+            "tile_color_scheme": "blue"
+          }
+        },
+        {
+          "type": "small_tile",
+          "settings": {
+            "badge_text": "Servicio profesional",
+            "title": "Asesoría Experta",
+            "description": "Te ayudamos a elegir",
+            "button_text": "Contactar",
+            "tile_color_scheme": "green"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

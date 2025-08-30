@@ -1,0 +1,259 @@
+/* 
+  Archivo: assets/section-banner-slider.css
+  Estilos para la sección Banner Slider
+*/
+
+/* Estilos generales */
+.banner-slider-section {
+  margin: 0;
+  padding: 0;
+}
+
+.banner-slider-section.page-width-standard {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.banner-slider-section.page-width-full {
+  width: 100%;
+}
+
+/* Contenedor para Móvil */
+.body-movil-banner-principal {
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.slider-container-banner-principal-movil {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  position: relative;
+  border-radius: 10px;
+}
+
+.slider-banner-principal-movil {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  width: 100%;
+  height: 100%;
+}
+
+.slide-banner-principal-movil {
+  min-width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.slide-banner-principal-movil img,
+.banner-image-mobile {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.slide-banner-principal-movil a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Controles para Móvil */
+.controls-banner-principal-movil {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+}
+
+.control-button-banner-principal-movil {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 50%;
+  background-color: rgba(36, 35, 35, 0.3);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.control-button-banner-principal-movil.active-movil {
+  background-color: #272727;
+}
+
+.control-button-banner-principal-movil:hover {
+  background-color: rgba(39, 39, 39, 0.6);
+}
+
+.icon-button-banner-principal-movil {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #272727;
+  transition: opacity 0.3s ease;
+}
+
+.icon-button-banner-principal-movil:hover {
+  opacity: 0.7;
+}
+
+.icon-button-banner-principal-movil svg {
+  width: 10px;
+  height: 10px;
+}
+
+/* Contenedor para PC y Tablet */
+.slider-container-banner-principal-body {
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.slider-container-banner-principal {
+  width: 100%;
+  max-width: 1400px;
+  overflow: hidden;
+  position: relative;
+  border-radius: 20px;
+}
+
+.slider-banner-principal {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  width: 100%;
+}
+
+.slide-banner-principal {
+  min-width: 100%;
+  position: relative;
+}
+
+.slide-banner-principal img,
+.banner-image-desktop {
+  width: 100%;
+  display: block;
+  border-radius: 20px;
+  height: auto;
+}
+
+.slide-banner-principal a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Controles para PC y Tablet */
+.controls-banner-principal {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 10;
+}
+
+.control-button-banner-principal {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.control-button-banner-principal.active {
+  background-color: #cfc3c3;
+}
+
+.control-button-banner-principal:hover {
+  background-color: rgba(207, 195, 195, 0.6);
+}
+
+.icon-button-banner-principal {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #ffffff;
+  transition: opacity 0.3s ease;
+}
+
+.icon-button-banner-principal:hover {
+  opacity: 0.7;
+}
+
+.icon-button-banner-principal svg {
+  width: 10px;
+  height: 10px;
+}
+
+/* Responsive: Mostrar el banner adecuado según el tamaño de pantalla */
+@media (max-width: 768px) {
+  .body-movil-banner-principal {
+    display: flex;
+  }
+  .slider-container-banner-principal-body {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .body-movil-banner-principal {
+    display: none !important;
+  }
+  .slider-container-banner-principal-body {
+    display: flex;
+  }
+}
+
+/* Mejoras de accesibilidad */
+.icon-button-banner-principal:focus,
+.icon-button-banner-principal-movil:focus,
+.control-button-banner-principal:focus,
+.control-button-banner-principal-movil:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Animaciones suaves */
+@media (prefers-reduced-motion: reduce) {
+  .slider-banner-principal,
+  .slider-banner-principal-movil {
+    transition: none;
+  }
+}
+
+/* Optimización para temas oscuros */
+@media (prefers-color-scheme: dark) {
+  .control-button-banner-principal {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .control-button-banner-principal.active {
+    background-color: #ffffff;
+  }
+  
+  .control-button-banner-principal-movil {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .control-button-banner-principal-movil.active-movil {
+    background-color: #ffffff;
+  }
+}

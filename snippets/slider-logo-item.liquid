@@ -1,0 +1,27 @@
+{% comment %} Archivo: snippets/slider-logo-item.liquid {% endcomment %}
+{% assign img = block.settings.image %}
+
+{% if img %}
+  {%- comment -%} Resuelve el alt sin usar pipes dentro de image_tag {%- endcomment -%}
+  {% assign alt_text = block.settings.alt %}
+  {% if alt_text == blank %}
+    {% assign alt_text = img.alt %}
+  {% endif %}
+  {% if alt_text == blank %}
+    {% assign alt_text = 'Logo' %}
+  {% endif %}
+
+  <div class="sl-item" {{ block.shopify_attributes }}>
+    {% if block.settings.link != blank %}
+      <a class="sl-link" href="{{ block.settings.link }}">
+    {% endif %}
+
+      {{ img
+        | image_url: width: 600
+        | image_tag: alt: alt_text, loading: 'lazy' }}
+
+    {% if block.settings.link != blank %}
+      </a>
+    {% endif %}
+  </div>
+{% endif %}

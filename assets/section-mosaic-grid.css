@@ -1,0 +1,403 @@
+/* 
+  Archivo: assets/section-mosaic-grid.css
+  Estilos para la sección de Mosaicos
+*/
+
+/* Contenedor Principal */
+.mosaic-grid-section {
+  padding: var(--padding-top, 36px) 0 var(--padding-bottom, 36px) 0;
+}
+
+.mosaic-grid-section.page-width-standard {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.mosaic-grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  min-height: 500px;
+}
+
+/* Mosaico Base */
+.mosaic-tile {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  min-height: 250px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mosaic-tile:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Fondo del Mosaico */
+.mosaic-tile__background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.mosaic-tile__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mosaic-tile__gradient {
+  width: 100%;
+  height: 100%;
+}
+
+/* Contenido del Mosaico */
+.mosaic-tile__content {
+  position: relative;
+  z-index: 2;
+  padding: 2rem;
+  color: white;
+  width: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  padding-top: 4rem;
+}
+
+/* Mosaico Grande */
+.mosaic-tile--large {
+  grid-row: span 2;
+  min-height: 100%;
+}
+
+.mosaic-tile--large .mosaic-tile__content {
+  padding: 3rem;
+}
+
+.mosaic-tile__title--large {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0.5rem 0 1rem;
+}
+
+/* Contenedor de Mosaicos Pequeños */
+.mosaic-tiles-small {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.mosaic-tiles-small .mosaic-tile:nth-child(odd) {
+  grid-column: 1;
+}
+
+.mosaic-tiles-small .mosaic-tile:nth-child(even) {
+  grid-column: 2;
+}
+
+.mosaic-tiles-small .mosaic-tile:nth-child(1),
+.mosaic-tiles-small .mosaic-tile:nth-child(2) {
+  grid-row: 1;
+}
+
+.mosaic-tiles-small .mosaic-tile:nth-child(3),
+.mosaic-tiles-small .mosaic-tile:nth-child(4) {
+  grid-row: 2;
+}
+
+/* Ajuste para 2 columnas en mosaicos pequeños */
+.mosaic-tiles-small {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+/* Mosaicos Pequeños */
+.mosaic-tile--small {
+  min-height: 240px;
+}
+
+.mosaic-tile--small .mosaic-tile__content {
+  padding: 1.5rem;
+}
+
+/* Etiquetas/Badges */
+.mosaic-tile__badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.mosaic-tile__badge--small {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+}
+
+/* Títulos */
+.mosaic-tile__title {
+  font-size: 1.75rem;
+  font-weight: bold;
+  margin: 0.5rem 0;
+  line-height: 1.2;
+}
+
+/* Descripciones */
+.mosaic-tile__description {
+  font-size: 1rem;
+  margin: 0.5rem 0 1.5rem;
+  opacity: 0.95;
+  line-height: 1.5;
+}
+
+.mosaic-tile__description--small {
+  font-size: 0.875rem;
+  margin: 0.5rem 0 1rem;
+}
+
+/* Botones */
+.mosaic-tile__button {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  border: 2px solid transparent;
+}
+
+.mosaic-tile__button.button--primary {
+  background: white;
+  color: #333;
+}
+
+.mosaic-tile__button.button--primary:hover {
+  background: #f0f0f0;
+  transform: translateX(5px);
+}
+
+.mosaic-tile__button.button--secondary {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+.mosaic-tile__button.button--secondary:hover {
+  background: white;
+  transform: translateX(5px);
+}
+
+.mosaic-tile__button.button--outline {
+  background: transparent;
+  color: white;
+  border-color: white;
+}
+
+.mosaic-tile__button.button--outline:hover {
+  background: white;
+  color: #333;
+  transform: translateX(5px);
+}
+
+/* Iconos Decorativos */
+.mosaic-tile__icon {
+  position: absolute;
+  z-index: 2;
+  opacity: 0.2;
+  width: 100px;
+  height: 100px;
+}
+
+.mosaic-tile__icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.mosaic-tile__icon--bottom-right {
+  bottom: 20px;
+  right: 20px;
+}
+
+.mosaic-tile__icon--bottom-left {
+  bottom: 20px;
+  left: 20px;
+}
+
+.mosaic-tile__icon--top-right {
+  top: 20px;
+  right: 20px;
+}
+
+/* Esquemas de Color Predefinidos */
+.mosaic-tile--dark {
+  background: linear-gradient(135deg, #2C3E50, #34495E);
+}
+
+.mosaic-tile--blue {
+  background: linear-gradient(135deg, #5B3FFF, #7C5FFF);
+}
+
+.mosaic-tile--green {
+  background: linear-gradient(135deg, #00A878, #00D4A4);
+}
+
+.mosaic-tile--purple {
+  background: linear-gradient(135deg, #8B5CF6, #A78BFA);
+}
+
+/* Si no hay imagen, usar el gradiente */
+.mosaic-tile--dark .mosaic-tile__gradient,
+.mosaic-tile--blue .mosaic-tile__gradient,
+.mosaic-tile--green .mosaic-tile__gradient,
+.mosaic-tile--purple .mosaic-tile__gradient {
+  display: none;
+}
+
+.mosaic-tile--dark:not(:has(.mosaic-tile__image)) .mosaic-tile__gradient {
+  display: block;
+  background: linear-gradient(135deg, #2C3E50, #34495E) !important;
+}
+
+.mosaic-tile--blue:not(:has(.mosaic-tile__image)) .mosaic-tile__gradient {
+  display: block;
+  background: linear-gradient(135deg, #5B3FFF, #7C5FFF) !important;
+}
+
+.mosaic-tile--green:not(:has(.mosaic-tile__image)) .mosaic-tile__gradient {
+  display: block;
+  background: linear-gradient(135deg, #00A878, #00D4A4) !important;
+}
+
+.mosaic-tile--purple:not(:has(.mosaic-tile__image)) .mosaic-tile__gradient {
+  display: block;
+  background: linear-gradient(135deg, #8B5CF6, #A78BFA) !important;
+}
+
+/* Responsive - Tablet */
+@media screen and (max-width: 989px) {
+  .mosaic-grid-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .mosaic-tile--large {
+    grid-row: span 1;
+    min-height: 350px;
+  }
+  
+  .mosaic-tiles-small {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+  }
+  
+  .mosaic-tile__title--large {
+    font-size: 2rem;
+  }
+}
+
+/* Responsive - Móvil */
+@media screen and (max-width: 749px) {
+  .mosaic-grid-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .mosaic-tiles-small {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 1rem;
+  }
+  
+  .mosaic-tiles-small .mosaic-tile {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+  
+  .mosaic-tile--large {
+    min-height: 300px;
+  }
+  
+  .mosaic-tile--small {
+    min-height: 200px;
+  }
+  
+  .mosaic-tile__title--large {
+    font-size: 1.75rem;
+  }
+  
+  .mosaic-tile__title {
+    font-size: 1.5rem;
+  }
+  
+  .mosaic-tile--large .mosaic-tile__content {
+    padding: 2rem;
+  }
+  
+  .mosaic-tile__icon {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mosaic-tile {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.mosaic-tile:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.mosaic-tile:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+.mosaic-tile:nth-child(4) {
+  animation-delay: 0.3s;
+}
+
+/* Accesibilidad */
+.mosaic-tile__button:focus {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mosaic-tile {
+    animation: none;
+    transition: none;
+  }
+  
+  .mosaic-tile:hover {
+    transform: none;
+  }
+}
+
+/* Modo Oscuro */
+@media (prefers-color-scheme: dark) {
+  .mosaic-tile__content {
+    background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+  }
+}
