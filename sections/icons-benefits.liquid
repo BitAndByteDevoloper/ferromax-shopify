@@ -1,0 +1,65 @@
+{% comment %}
+  Sección: Iconos / Beneficios (con CSS separado)
+  Archivo: sections/icons-benefits.liquid
+{% endcomment %}
+
+<div class="blank-space">
+  {% for block in section.blocks %}
+    {% assign h = block.settings.altura | default: 50 %}
+    {% assign show = block.settings.show_debug %}
+    {% assign color = block.settings.debug_color | default: '#FB560A' %}
+    <div
+      style="
+        display:block;
+        width:100%;
+        height: {{ h }}px;
+        {% if show %}background: {{ color }}33; outline: 1px dashed {{ color }};{% endif %}
+      ">
+    </div>
+  {% endfor %}
+</div>
+
+{% schema %}
+{
+  "name": "Blank space (Espacio)",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "space",
+      "name": "Space",
+      "settings": [
+        {
+          "type": "range",
+          "id": "altura",
+          "label": "Height (px)",
+          "min": 10,
+          "max": 500,
+          "step": 10,
+          "default": 80
+        },
+        {
+          "type": "checkbox",
+          "id": "show_debug",
+          "label": "Show debug color",
+          "default": true
+        },
+        {
+          "type": "color",
+          "id": "debug_color",
+          "label": "Debug color",
+          "default": "#00ff00"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blank space (Espacio)",
+      "category": "Design",
+      "blocks": [
+        { "type": "space" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,69 @@
+/* 
+  Archivo: assets/section-dynamic-phrases.css
+  Estilos de la sección "Frases Dinámicas".
+*/
+
+.dyn-phrases {
+  font-family: var(--dp-font);
+  color: var(--dp-text-color);
+}
+
+.dyn-phrases .dp-container {
+  max-width: var(--dp-maxw);
+  padding: var(--dp-container-py) var(--dp-container-px);
+  margin: 0 auto;
+}
+
+.dyn-phrases.dp-full .dp-container {
+  max-width: none;
+}
+
+.dyn-phrases .dp-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--dp-gap);
+  justify-content: var(--dp-align);
+  width: 100%;
+}
+
+.dyn-phrases .dp-icon {
+  display: inline-flex;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.dyn-phrases .dp-icon-img,
+.dyn-phrases .dp-icon-svg svg {
+  width: var(--dp-icon-size);
+  height: var(--dp-icon-size);
+  display: block;
+}
+
+.dyn-phrases .dp-icon-svg svg [fill]:not([fill="none"]) { fill: currentColor; }
+.dyn-phrases .dp-icon-svg svg [stroke]:not([stroke="none"]) { stroke: currentColor; }
+
+.dyn-phrases .dp-phrase {
+  font-size: var(--dp-size);
+  font-weight: var(--dp-weight);
+  line-height: 1.35;
+  display: inline-flex;
+  align-items: center;
+  gap: .4em;
+  text-align: var(--dp-align);
+  transition: opacity .28s ease;
+}
+
+.dyn-phrases .dp-phrase a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.dyn-phrases .dp-phrase .dp-accent {
+  color: var(--dp-accent-color);
+}
+
+@media (max-width: 640px) {
+  .dyn-phrases .dp-phrase {
+    font-size: calc(var(--dp-size) * .9);
+  }
+}

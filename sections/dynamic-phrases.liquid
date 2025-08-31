@@ -1,0 +1,269 @@
+{% comment %}
+  Sección: Frases Dinámicas (con CSS separado)
+  Archivo: sections/dynamic-phrases.liquid
+{% endcomment %}
+
+{{ 'section-dynamic-phrases.css' | asset_url | stylesheet_tag }}
+
+{% liquid
+  assign sec_id = section.id
+%}
+
+<div id="dyn-phrases-{{ sec_id }}"
+     class="dyn-phrases{% if section.settings.full_width %} dp-full{% endif %}"
+     data-mode="{{ section.settings.rotation_mode }}"
+     data-interval-min="{{ section.settings.interval_minutes }}"
+     data-interval-sec="{{ section.settings.interval_seconds }}"
+     data-seq-autoplay="{{ section.settings.seq_autoplay }}"
+     data-emphasis-class="{{ section.settings.emphasis_class | escape }}"
+     data-stick-random="{{ section.settings.stick_random }}"
+     data-use-customer="{{ section.settings.random_per_customer }}"
+     style="
+       --dp-text-color: {{ section.settings.text_color }};
+       --dp-accent-color: {{ section.settings.accent_color }};
+       --dp-font: {{ section.settings.font_family | default: 'inherit' }};
+       --dp-size: {{ section.settings.font_size }}px;
+       --dp-icon-size: {{ section.settings.icon_size }}px;
+       --dp-gap: {{ section.settings.gap }}px;
+       --dp-align: {{ section.settings.text_align }};
+       --dp-weight: {{ section.settings.font_weight }};
+       --dp-container-py: {{ section.settings.py }}px;
+       --dp-container-px: {{ section.settings.px }}px;
+       --dp-maxw: {{ section.settings.max_width }}px;
+     ">
+  <div class="dp-container">
+    <div class="dp-row">
+      {% if section.settings.icon_svg != blank or section.settings.icon_image != blank %}
+        <span class="dp-icon" aria-hidden="true" style="color: {{ section.settings.icon_color }};">
+          {% if section.settings.icon_svg != blank %}
+            <span class="dp-icon-svg">{{ section.settings.icon_svg }}</span>
+          {% else %}
+            {{ section.settings.icon_image | image_url: width: 96 | image_tag: alt: section.settings.icon_alt, class: 'dp-icon-img' }}
+          {% endif %}
+        </span>
+      {% endif %}
+      <span class="dp-phrase" role="status" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <script type="application/json" id="dp-data-{{ sec_id }}">
+    {
+      "phrases": [
+        {% for b in section.blocks %}
+          {
+            "text": {{ b.settings.text | json }},
+            "link": {{ b.settings.link | json }},
+            "accent": {{ b.settings.emphasis | json }}
+          }{% unless forloop.last %},{% endunless %}
+        {% endfor %}
+      ]
+    }
+  </script>
+</div>
+
+<script>
+/* Inline JS for Dynamic Phrases */
+(function() {
+  const root = document.getElementById('dyn-phrases-{{ sec_id }}');
+  if (!root) return;
+
+  const data = JSON.parse(document.getElementById('dp-data-{{ sec_id }}').textContent || '{"phrases": []}');
+  const phrases = Array.isArray(data.phrases) ? data.phrases.filter(p => p && p.text) : [];
+  const phraseEl = root.querySelector('.dp-phrase');
+  if (!phraseEl || !phrases.length) return;
+
+  const mode = root.dataset.mode || 'random_each_visit';
+  const intervalMin = parseInt(root.dataset.intervalMin || '0', 10);
+  const intervalSec = parseInt(root.dataset.intervalSec || '0', 10);
+  const autoplay = root.dataset.seqAutoplay === 'true';
+  const stickRandom = root.dataset.stickRandom === 'true';
+  const useCustomer = root.dataset.useCustomer === 'true';
+  const emphasisClass = root.dataset.emphasisClass || 'dp-accent';
+
+  function decorate(text, accentSpec) {
+    if (!accentSpec) return text;
+    try {
+      const parts = accentSpec.split('|').map(s => s.trim()).filter(Boolean);
+      if (!parts.length) return text;
+      let out = text;
+      parts.forEach(p => {
+        const re = new RegExp('(' + p.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&') + ')','gi');
+        out = out.replace(re, `<span class="${emphasisClass}">$1</span>`);
+      });
+      return out;
+    } catch (_) {
+      return text;
+    }
+  }
+
+  function setPhrase(index) {
+    const item = phrases[index % phrases.length];
+    const html = decorate(item.text, item.accent);
+    const inner = item.link ? `<a href="${item.link}">${html}</a>` : html;
+    phraseEl.style.opacity = '0';
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        phraseEl.innerHTML = inner;
+        phraseEl.style.opacity = '1';
+      }, 120);
+    });
+  }
+
+  function hashStr(str) {
+    let h = 2166136261 >>> 0;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+
+  const now = new Date();
+  const minutesBucket = now.getUTCFullYear() * 525600 + now.getUTCMonth()*44640 + now.getUTCDate()*1440 + now.getUTCHours()*60 + now.getUTCMinutes();
+  const hoursBucket   = now.getUTCFullYear() * 8760 + now.getUTCMonth()*720 + now.getUTCDate()*24 + now.getUTCHours();
+  const daysBucket    = Math.floor(now.getTime() / 86400000);
+  const monthsBucket  = now.getUTCFullYear()*12 + now.getUTCMonth();
+
+  const storageKey = `dp_rand_{{ sec_id }}`;
+  const sessionKey = `dp_sess_{{ sec_id }}`;
+
+  {% if customer and customer.id %}
+    const customerSeed = String({{ customer.id }});
+  {% else %}
+    const customerSeed = null;
+  {% endif %}
+
+  function initialIndex() {
+    switch (mode) {
+      case 'random_each_visit': return Math.floor(Math.random() * phrases.length);
+      case 'random_per_session': {
+        const saved = sessionStorage.getItem(sessionKey);
+        if (saved !== null) return Number(saved) % phrases.length;
+        const idx = Math.floor(Math.random() * phrases.length);
+        sessionStorage.setItem(sessionKey, String(idx));
+        return idx;
+      }
+      case 'random_per_user': {
+        if (useCustomer && customerSeed) return hashStr('u:' + customerSeed) % phrases.length;
+        const saved = localStorage.getItem(storageKey);
+        if (saved !== null && stickRandom) return Number(saved) % phrases.length;
+        const idx = Math.floor(Math.random() * phrases.length);
+        localStorage.setItem(storageKey, String(idx));
+        return idx;
+      }
+      case 'time_minutes': return Math.abs(minutesBucket) % phrases.length;
+      case 'time_hours':   return Math.abs(hoursBucket) % phrases.length;
+      case 'time_days':    return Math.abs(daysBucket) % phrases.length;
+      case 'time_months':  return Math.abs(monthsBucket) % phrases.length;
+      case 'sequential':
+      default: return 0;
+    }
+  }
+
+  let idx = initialIndex();
+  setPhrase(idx);
+
+  function getMs() {
+    const baseMs = (intervalMin > 0 ? intervalMin * 60000 : 0) + (intervalSec > 0 ? intervalSec * 1000 : 0);
+    if (baseMs > 0) return baseMs;
+    switch (mode) {
+      case 'time_minutes': return 60000;
+      case 'time_hours':   return 3600000;
+      case 'time_days':    return 86400000;
+      case 'time_months':  return 86400000 * 30;
+      case 'sequential':   return autoplay ? 4000 : 0;
+      default: return 0;
+    }
+  }
+
+  let timer = null;
+  function start() {
+    const ms = getMs();
+    if (!ms) return;
+    if (timer) clearInterval(timer);
+    timer = setInterval(() => {
+      if (mode === 'sequential' || mode === 'random_each_visit') {
+        idx = (mode === 'sequential') ? (idx + 1) % phrases.length : Math.floor(Math.random() * phrases.length);
+      } else {
+        idx = initialIndex();
+      }
+      setPhrase(idx);
+    }, ms);
+  }
+  start();
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Dynamic Phrases with Icon",
+  "class": "section-dyn-phrases",
+  "settings": [
+    { "type": "checkbox", "id": "full_width", "label": "Use full width", "default": false },
+    { "type": "color", "id": "text_color", "label": "Text color", "default": "#111111" },
+    { "type": "color", "id": "accent_color", "label": "Accent color", "default": "#e60000" },
+    { "type": "text", "id": "font_family", "label": "Font family (CSS)", "default": "inherit" },
+    { "type": "select", "id": "font_weight", "label": "Font weight", "default": "600",
+      "options": [
+        { "value": "400", "label": "Normal (400)" },
+        { "value": "500", "label": "Medium (500)" },
+        { "value": "600", "label": "Semibold (600)" },
+        { "value": "700", "label": "Bold (700)" }
+      ]
+    },
+    { "type": "range", "id": "font_size", "min": 10, "max": 48, "step": 1, "unit": "px", "label": "Font size", "default": 18 },
+    { "type": "select", "id": "text_align", "label": "Alignment", "default": "center",
+      "options": [
+        { "value": "flex-start", "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "flex-end", "label": "Right" }
+      ]
+    },
+    { "type": "range", "id": "max_width", "min": 320, "max": 1320, "step": 10, "unit": "px", "label": "Max width (if not full)", "default": 1200 },
+    { "type": "range", "id": "px", "min": 0, "max": 80, "step": 2, "unit": "px", "label": "Padding X", "default": 8 },
+    { "type": "range", "id": "py", "min": 0, "max": 80, "step": 2, "unit": "px", "label": "Padding Y", "default": 6 },
+    { "type": "range", "id": "gap", "min": 4, "max": 48, "step": 2, "unit": "px", "label": "Gap between icon and text", "default": 8 },
+
+    { "type": "header", "content": "Icon" },
+    { "type": "image_picker", "id": "icon_image", "label": "Icon as image (optional)" },
+    { "type": "text", "id": "icon_svg", "label": "Icon as SVG (paste code)" },
+    { "type": "text", "id": "icon_alt", "label": "Icon alt", "default": "Icon" },
+    { "type": "color", "id": "icon_color", "label": "Icon color (SVG)", "default": "#111111" },
+    { "type": "range", "id": "icon_size", "min": 12, "max": 64, "step": 1, "unit": "px", "label": "Icon size", "default": 16 },
+
+    { "type": "header", "content": "Rotation" },
+    { "type": "select", "id": "rotation_mode", "label": "Rotation mode", "default": "random_each_visit",
+      "options": [
+        { "value": "sequential", "label": "Sequential" },
+        { "value": "random_each_visit", "label": "Random each visit" },
+        { "value": "random_per_session", "label": "Random per session" },
+        { "value": "random_per_user", "label": "Random per user" },
+        { "value": "time_minutes", "label": "Change by MINUTES" },
+        { "value": "time_hours", "label": "Change by HOURS" },
+        { "value": "time_days", "label": "Change by DAYS" },
+        { "value": "time_months", "label": "Change by MONTHS" }
+      ]
+    },
+    { "type": "checkbox", "id": "seq_autoplay", "label": "Autoplay in Sequential", "default": true },
+    { "type": "number", "id": "interval_minutes", "label": "Interval: minutes (optional)", "default": 0 },
+    { "type": "number", "id": "interval_seconds", "label": "Interval: seconds (optional)", "default": 0 },
+    { "type": "checkbox", "id": "stick_random", "label": "Persist choice in Random per user", "default": true },
+    { "type": "checkbox", "id": "random_per_customer", "label": "Use customer ID if logged in", "default": true },
+
+    { "type": "header", "content": "Emphasis" },
+    { "type": "text", "id": "emphasis_class", "label": "CSS class for emphasis", "default": "dp-accent" }
+  ],
+  "blocks": [
+    {
+      "type": "phrase",
+      "name": "Phrase",
+      "settings": [
+        { "type": "text", "id": "text", "label": "Phrase text", "default": "Back to School! Discounts are back!" },
+        { "type": "url",  "id": "link", "label": "Link (optional)" },
+        { "type": "text", "id": "emphasis", "label": "Words to emphasize (| separated)" }
+      ]
+    }
+  ],
+  "max_blocks": 50,
+  "presets": [
+    { "name": "Dynamic Phrases with Icon", "category": "Text" }
+  ]
+}
+{% endschema %}
