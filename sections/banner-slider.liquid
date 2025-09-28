@@ -1,119 +1,162 @@
 {% comment %}
   Archivo: sections/banner-slider.liquid
-  Sección de Banner Slider Adaptable para Dawn Theme
+  Sección de Banner Slider Adaptable para Dawn Theme (gutters laterales móviles/desktop)
 {% endcomment %}
 
 {{ 'section-banner-slider.css' | asset_url | stylesheet_tag }}
 
-<div class="banner-slider-section page-width-{{ section.settings.page_width }}">
-  <!-- Contenedor para Móvil -->
-  <div class="body-movil-banner-principal" data-autoplay="{{ section.settings.autoplay }}" data-autoplay-speed="{{ section.settings.autoplay_speed }}">
-    <div class="slider-container-banner-principal-movil">
-      <div class="slider-banner-principal-movil" id="slider-banner-principal-movil-{{ section.id }}">
-        {% for block in section.blocks %}
-          {% if block.settings.image_mobile %}
-            <div class="slide-banner-principal-movil" {{ block.shopify_attributes }}>
-              {% if block.settings.link != blank %}
-                <a href="{{ block.settings.link }}" {% if block.settings.open_new_tab %}target="_blank"{% endif %}>
-              {% endif %}
-                {{ block.settings.image_mobile | image_url: width: 800 | image_tag: 
-                  alt: block.settings.image_mobile.alt | default: 'Banner móvil',
-                  loading: 'lazy',
-                  class: 'banner-image-mobile'
-                }}
-              {% if block.settings.link != blank %}
-                </a>
-              {% endif %}
-            </div>
-          {% endif %}
-        {% endfor %}
-      </div>
-      
-      <!-- Controles para Móvil -->
-      <div class="controls-banner-principal-movil">
-        <button class="icon-button-banner-principal-movil" id="prev-banner-principal-movil-{{ section.id }}" aria-label="Anterior">
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6 1L2 5L6 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        
-        {% for block in section.blocks %}
-          {% if block.settings.image_mobile %}
-            <button class="control-button-banner-principal-movil" data-slide="{{ forloop.index0 }}" aria-label="Ir a slide {{ forloop.index }}"></button>
-          {% endif %}
-        {% endfor %}
-        
-        <button class="icon-button-banner-principal-movil" id="next-banner-principal-movil-{{ section.id }}" aria-label="Siguiente">
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 1L8 5L4 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        
-        <button class="icon-button-banner-principal-movil" id="pause-banner-principal-movil-{{ section.id }}" aria-label="Pausar">
-          <svg class="pause-icon" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="1" width="3" height="8" fill="currentColor"/>
-            <rect x="6" y="1" width="3" height="8" fill="currentColor"/>
-          </svg>
-          <svg class="play-icon" style="display:none;" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 1L8 5L2 9V1Z" fill="currentColor"/>
-          </svg>
-        </button>
+{%- assign desk_w = 22 -%}{%- assign desk_h = 9 -%}
+{%- case section.settings.desktop_aspect -%}
+  {%- when '16_9' -%}{% assign desk_w = 16 %}{% assign desk_h = 9 %}
+  {%- when '22_9' -%}{% assign desk_w = 22 %}{% assign desk_h = 9 %}
+  {%- when '32_9' -%}{% assign desk_w = 32 %}{% assign desk_h = 9 %}
+  {%- when '21_9' -%}{% assign desk_w = 21 %}{% assign desk_h = 9 %}
+  {%- when '4_3'  -%}{% assign desk_w = 4  %}{% assign desk_h = 3 %}
+  {%- when '3_2'  -%}{% assign desk_w = 3  %}{% assign desk_h = 2 %}
+  {%- when '2_1'  -%}{% assign desk_w = 2  %}{% assign desk_h = 1 %}
+  {%- when '1_1'  -%}{% assign desk_w = 1  %}{% assign desk_h = 1 %}
+{%- endcase -%}
+
+{%- assign mob_w = 1 -%}{%- assign mob_h = 1 -%}
+{%- case section.settings.mobile_aspect -%}
+  {%- when '1_1'  -%}{% assign mob_w = 1 %}{% assign mob_h = 1 %}
+  {%- when '4_5'  -%}{% assign mob_w = 4 %}{% assign mob_h = 5 %}
+  {%- when '3_4'  -%}{% assign mob_w = 3 %}{% assign mob_h = 4 %}
+  {%- when '9_16' -%}{% assign mob_w = 9 %}{% assign mob_h = 16 %}
+  {%- when '16_9' -%}{% assign mob_w = 16 %}{% assign mob_h = 9 %}
+{%- endcase -%}
+
+{%- assign ctrl_bg_rgb = section.settings.controls_bg | color_to_rgb | remove: 'rgb(' | remove: ')' -%}
+{%- assign dot_rgb = section.settings.controls_dot | color_to_rgb | remove: 'rgb(' | remove: ')' -%}
+{%- assign dot_active_rgb = section.settings.controls_dot_active | color_to_rgb | remove: 'rgb(' | remove: ')' -%}
+
+<div
+  class="banner-slider-section"
+  style="
+    /* Widths */
+    --container-w-desktop: {% if section.settings.desktop_width_mode == 'custom' %}{{ section.settings.desktop_container_width_px | default: 1200 }}px{% else %}100%{% endif %};
+    --container-w-mobile:  {% if section.settings.mobile_width_mode  == 'custom' %}{{ section.settings.mobile_container_width_px  | default: 360 }}px{% else %}100%{% endif %};
+
+    /* Desktop sizes */
+    --desktop-ar: {{ desk_w | plus: 0.0 | divided_by: desk_h }};
+    --desktop-h: {% if section.settings.desktop_size_mode == 'fixed' %}{{ section.settings.desktop_height | default: 420 }}px{% else %}auto{% endif %};
+
+    /* Mobile sizes */
+    --mobile-ar: {{ mob_w | plus: 0.0 | divided_by: mob_h }};
+    --mobile-h:  {% if section.settings.mobile_size_mode == 'fixed' %}{{ section.settings.mobile_height | default: 500 }}px{% else %}auto{% endif %};
+
+    /* Corners */
+    --r-tl: {{ section.settings.radius_tl | default: 20 }}px;
+    --r-tr: {{ section.settings.radius_tr | default: 20 }}px;
+    --r-br: {{ section.settings.radius_br | default: 20 }}px;
+    --r-bl: {{ section.settings.radius_bl | default: 20 }}px;
+
+    /* External margins */
+    --margin-d: {{ section.settings.desktop_margin | default: 0 }}px;
+    --margin-m: {{ section.settings.mobile_margin  | default: 0 }}px;
+
+    /* Side gutters (padding-inline) — applied via wrapper */
+    --gutter-d: {% if section.settings.desktop_width_mode == 'full' %}0px{% else %}{{ section.settings.desktop_side_padding | default: 0 }}px{% endif %};
+    --gutter-m: {% if section.settings.mobile_width_mode  == 'full' %}0px{% else %}{{ section.settings.mobile_side_padding  | default: 16 }}px{% endif %};
+
+    /* Controls */
+    --controls-fg: {{ section.settings.controls_fg | default: '#ffffff' }};
+    --controls-bg-rgb: {{ ctrl_bg_rgb }};
+    --controls-bg-alpha: {{ section.settings.controls_bg_alpha | default: 35 | times: 0.01 }};
+    --controls-dot-rgb: {{ dot_rgb }};
+    --controls-dot-alpha: {{ section.settings.controls_dot_alpha | default: 45 | times: 0.01 }};
+    --controls-dot-active-rgb: {{ dot_active_rgb }};
+    --controls-dot-active-alpha: {{ section.settings.controls_dot_active_alpha | default: 100 | times: 0.01 }};
+    --controls-bg: rgba(var(--controls-bg-rgb), var(--controls-bg-alpha));
+    --controls-dot: rgba(var(--controls-dot-rgb), var(--controls-dot-alpha));
+    --controls-dot-active: rgba(var(--controls-dot-active-rgb), var(--controls-dot-active-alpha));
+  "
+  data-autoplay="{{ section.settings.autoplay }}"
+  data-autoplay-speed="{{ section.settings.autoplay_speed }}"
+  data-swipe-desktop="{{ section.settings.swipe_desktop }}"
+>
+  <!-- Mobile -->
+  <div class="body-movil-banner-principal">
+    <!-- Gutter wrapper (mobile) -->
+    <div class="banner-gutters-mobile">
+      <div class="slider-container-banner-principal-movil
+        {% if section.settings.mobile_width_mode == 'full' %}full-bleed-mobile{% endif %}
+        {% if section.settings.mobile_width_mode == 'standard' %}width-standard{% elsif section.settings.mobile_width_mode == 'custom' %}width-custom{% endif %}">
+        <div class="slider-banner-principal-movil" id="slider-banner-principal-movil-{{ section.id }}">
+          {% for block in section.blocks %}
+            {% if block.settings.image_mobile %}
+              <div class="slide-banner-principal-movil" {{ block.shopify_attributes }}>
+                {% if block.settings.link %}<a href="{{ block.settings.link }}" {% if block.settings.open_new_tab %}target="_blank"{% endif %}>{% endif %}
+                {{ block.settings.image_mobile
+                  | image_url: width: 1400
+                  | image_tag:
+                    alt: block.settings.title | default: 'Banner móvil',
+                    loading: 'lazy',
+                    class: 'banner-image-mobile',
+                    widths: '400,600,800,1000,1200,1400',
+                    sizes: '(max-width: 768px) 100vw, 0' }}
+                {% if block.settings.link %}</a>{% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        <div class="controls-banner-principal-movil" aria-label="Controles del slider móvil">
+          <button class="icon-button-banner-principal-movil" id="prev-banner-principal-movil-{{ section.id }}" aria-label="Anterior">
+            <svg width="10" height="10" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><path d="M6 1L2 5L6 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          {% for block in section.blocks %}{% if block.settings.image_mobile %}<button class="control-button-banner-principal-movil" data-slide="{{ forloop.index0 }}" aria-label="Ir a slide {{ forloop.index }}"></button>{% endif %}{% endfor %}
+          <button class="icon-button-banner-principal-movil" id="next-banner-principal-movil-{{ section.id }}" aria-label="Siguiente">
+            <svg width="10" height="10" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><path d="M4 1L8 5L4 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="icon-button-banner-principal-movil" id="pause-banner-principal-movil-{{ section.id }}" aria-label="Pausar">
+            <svg class="pause-icon" width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="3" height="8"/><rect x="6" y="1" width="3" height="8"/></svg>
+            <svg class="play-icon" style="display:none;" width="10" height="10" viewBox="0 0 10 10"><path d="M2 1L8 5L2 9V1Z"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Contenedor para PC y Tablet -->
+  <!-- Desktop / Tablet -->
   <div class="slider-container-banner-principal-body">
-    <div class="slider-container-banner-principal">
-      <div class="slider-banner-principal" id="slider-banner-principal-{{ section.id }}">
-        {% for block in section.blocks %}
-          {% if block.settings.image_desktop %}
-            <div class="slide-banner-principal" {{ block.shopify_attributes }}>
-              {% if block.settings.link != blank %}
-                <a href="{{ block.settings.link }}" {% if block.settings.open_new_tab %}target="_blank"{% endif %}>
-              {% endif %}
-                {{ block.settings.image_desktop | image_url: width: 1400 | image_tag: 
-                  alt: block.settings.image_desktop.alt | default: 'Banner',
-                  loading: 'lazy',
-                  class: 'banner-image-desktop'
-                }}
-              {% if block.settings.link != blank %}
-                </a>
-              {% endif %}
-            </div>
-          {% endif %}
-        {% endfor %}
-      </div>
-      
-      <!-- Controles para PC y Tablet -->
-      <div class="controls-banner-principal">
-        <button class="icon-button-banner-principal" id="prev-banner-principal-{{ section.id }}" aria-label="Anterior">
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6 1L2 5L6 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        
-        {% for block in section.blocks %}
-          {% if block.settings.image_desktop %}
-            <button class="control-button-banner-principal" data-slide="{{ forloop.index0 }}" aria-label="Ir a slide {{ forloop.index }}"></button>
-          {% endif %}
-        {% endfor %}
-        
-        <button class="icon-button-banner-principal" id="next-banner-principal-{{ section.id }}" aria-label="Siguiente">
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 1L8 5L4 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        
-        <button class="icon-button-banner-principal" id="pause-banner-principal-{{ section.id }}" aria-label="Pausar">
-          <svg class="pause-icon" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="1" width="3" height="8" fill="currentColor"/>
-            <rect x="6" y="1" width="3" height="8" fill="currentColor"/>
-          </svg>
-          <svg class="play-icon" style="display:none;" width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 1L8 5L2 9V1Z" fill="currentColor"/>
-          </svg>
-        </button>
+    <!-- Gutter wrapper (desktop) -->
+    <div class="banner-gutters-desktop">
+      <div class="slider-container-banner-principal
+        {% if section.settings.desktop_width_mode == 'full' %}full-bleed{% endif %}
+        {% if section.settings.desktop_width_mode == 'standard' %}width-standard{% elsif section.settings.desktop_width_mode == 'custom' %}width-custom{% endif %}">
+        <div class="slider-banner-principal" id="slider-banner-principal-{{ section.id }}" aria-live="polite">
+          {% for block in section.blocks %}
+            {% if block.settings.image_desktop %}
+              <div class="slide-banner-principal" {{ block.shopify_attributes }}>
+                {% if block.settings.link %}<a href="{{ block.settings.link }}" {% if block.settings.open_new_tab %}target="_blank"{% endif %}>{% endif %}
+                {{ block.settings.image_desktop
+                  | image_url: width: 2400
+                  | image_tag:
+                    alt: block.settings.title | default: 'Banner',
+                    loading: 'lazy',
+                    class: 'banner-image-desktop',
+                    widths: '1000,1400,1800,2048,2400',
+                    sizes: '(min-width: 769px) 100vw, 0' }}
+                {% if block.settings.link %}</a>{% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        <div class="controls-banner-principal" aria-label="Controles del slider">
+          <button class="icon-button-banner-principal" id="prev-banner-principal-{{ section.id }}" aria-label="Anterior">
+            <svg width="10" height="10" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><path d="M6 1L2 5L6 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          {% for block in section.blocks %}{% if block.settings.image_desktop %}<button class="control-button-banner-principal" data-slide="{{ forloop.index0 }}" aria-label="Ir a slide {{ forloop.index }}"></button>{% endif %}{% endfor %}
+          <button class="icon-button-banner-principal" id="next-banner-principal-{{ section.id }}" aria-label="Siguiente">
+            <svg width="10" height="10" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"><path d="M4 1L8 5L4 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="icon-button-banner-principal" id="pause-banner-principal-{{ section.id }}" aria-label="Pausar">
+            <svg class="pause-icon" width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="3" height="8"/><rect x="6" y="1" width="3" height="8"/></svg>
+            <svg class="play-icon" style="display:none;" width="10" height="10" viewBox="0 0 10 10"><path d="M2 1L8 5L2 9V1Z"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -124,24 +167,15 @@
     const sectionId = '{{ section.id }}';
     const autoplay = {{ section.settings.autoplay }};
     const autoplaySpeed = {{ section.settings.autoplay_speed }} * 1000;
-    
-    // Función para inicializar el slider
-    function initSlider(options) {
-      const {
-        sliderSelector,
-        slideSelector,
-        controlButtonsSelector,
-        prevButtonSelector,
-        nextButtonSelector,
-        pauseButtonSelector,
-        isMobile
-      } = options;
+    const swipeDesktop = {{ section.settings.swipe_desktop }};
 
-      let currentIndex = 0;
-      let isPaused = false;
+    function initSlider(opts){
+      const { sliderSelector, slideSelector, controlButtonsSelector, prevButtonSelector, nextButtonSelector, pauseButtonSelector, allowSwipe } = opts;
+
+      let currentIndex = 0, isPaused = false;
       const slider = document.querySelector(sliderSelector);
       if (!slider) return;
-      
+
       const slides = slider.querySelectorAll(slideSelector);
       const controlButtons = document.querySelectorAll(controlButtonsSelector);
       const prevButton = document.querySelector(prevButtonSelector);
@@ -149,134 +183,55 @@
       const pauseButton = document.querySelector(pauseButtonSelector);
       let slideInterval;
 
-      // Actualizar el slider y los botones de control
-      function updateSlider() {
+      function update(){
         slider.style.transform = `translateX(${-currentIndex * 100}%)`;
-        controlButtons.forEach((btn, index) => {
-          btn.classList.toggle('active' + (isMobile ? '-movil' : ''), index === currentIndex);
+        controlButtons.forEach((btn, i) => {
+          btn.classList.toggle(controlButtonsSelector.includes('movil') ? 'active-movil' : 'active', i === currentIndex);
         });
       }
+      function next(){ if(!isPaused){ currentIndex = (currentIndex + 1) % slides.length; update(); } }
+      function prev(){ currentIndex = (currentIndex - 1 + slides.length) % slides.length; update(); }
 
-      // Avanzar al siguiente slide
-      function nextSlide() {
-        if (!isPaused) {
-          currentIndex = (currentIndex + 1) % slides.length;
-          updateSlider();
-        }
-      }
-
-      // Retroceder al slide anterior
-      function prevSlideFunc() {
-        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-        updateSlider();
-      }
-
-      // Pausar o reanudar el slider
-      function togglePause() {
+      controlButtons.forEach((btn, i) => btn.addEventListener('click', ()=>{ currentIndex = i; update(); reset(); }));
+      if (prevButton) prevButton.addEventListener('click', ()=>{ prev(); reset(); });
+      if (nextButton) nextButton.addEventListener('click', ()=>{ next(); reset(); });
+      if (pauseButton) pauseButton.addEventListener('click', ()=>{
         isPaused = !isPaused;
-        const pauseIcon = pauseButton.querySelector('.pause-icon');
-        const playIcon = pauseButton.querySelector('.play-icon');
-        
-        if (isPaused) {
-          pauseIcon.style.display = 'none';
-          playIcon.style.display = 'block';
-        } else {
-          pauseIcon.style.display = 'block';
-          playIcon.style.display = 'none';
-        }
-      }
-
-      // Evento para botones de control
-      controlButtons.forEach((btn, index) => {
-        btn.addEventListener('click', () => {
-          currentIndex = index;
-          updateSlider();
-          resetInterval();
-        });
+        const p = pauseButton.querySelector('.pause-icon'), pl = pauseButton.querySelector('.play-icon');
+        if (p && pl){ if(isPaused){ p.style.display='none'; pl.style.display='block'; } else { p.style.display='block'; pl.style.display='none'; } }
       });
 
-      // Eventos para botones de navegación
-      if (prevButton) {
-        prevButton.addEventListener('click', () => {
-          prevSlideFunc();
-          resetInterval();
+      function start(){ if(autoplay && slides.length>1){ clearInterval(slideInterval); slideInterval = setInterval(next, autoplaySpeed); } }
+      function reset(){ if(autoplay){ clearInterval(slideInterval); start(); } }
+
+      if (allowSwipe){
+        let sx=0, dragging=false;
+        slider.addEventListener('touchstart', e => { sx = e.changedTouches[0].screenX; }, {passive:true});
+        slider.addEventListener('touchend',   e => {
+          const dx = e.changedTouches[0].screenX - sx;
+          if (Math.abs(dx) > 50){ dx < 0 ? next() : prev(); reset(); }
+        }, {passive:true});
+        slider.addEventListener('mousedown', e => { dragging = true; sx = e.clientX; });
+        window.addEventListener('mouseup', e => {
+          if(!dragging) return; dragging = false;
+          const dx = e.clientX - sx;
+          if (Math.abs(dx) > 50){ dx < 0 ? next() : prev(); reset(); }
         });
       }
 
-      if (nextButton) {
-        nextButton.addEventListener('click', () => {
-          nextSlide();
-          resetInterval();
-        });
-      }
-
-      // Evento para botón de pausa
-      if (pauseButton) {
-        pauseButton.addEventListener('click', () => {
-          togglePause();
-        });
-      }
-
-      // Intervalo para auto-rotación de slides
-      function startInterval() {
-        if (autoplay && slides.length > 1) {
-          slideInterval = setInterval(nextSlide, autoplaySpeed);
-        }
-      }
-
-      function resetInterval() {
-        clearInterval(slideInterval);
-        startInterval();
-      }
-
-      // Iniciar slider
-      updateSlider();
-      startInterval();
-
-      // Soporte táctil para móviles
-      if (isMobile) {
-        let touchStartX = 0;
-        let touchEndX = 0;
-
-        slider.addEventListener('touchstart', (e) => {
-          touchStartX = e.changedTouches[0].screenX;
-        }, false);
-
-        slider.addEventListener('touchend', (e) => {
-          touchEndX = e.changedTouches[0].screenX;
-          handleGesture();
-        }, false);
-
-        function handleGesture() {
-          const swipeThreshold = 50;
-          const deltaX = touchEndX - touchStartX;
-          if (Math.abs(deltaX) > swipeThreshold) {
-            if (deltaX < 0) {
-              nextSlide();
-            } else {
-              prevSlideFunc();
-            }
-            resetInterval();
-          }
-        }
-      }
+      update(); start();
     }
 
-    // Detectar dispositivo y mostrar el banner correspondiente
-    function detectDevice() {
+    function detectDevice(){
       const isMobile = window.innerWidth <= 768;
-      const mobileContainer = document.querySelector('.body-movil-banner-principal');
-      const desktopContainer = document.querySelector('.slider-container-banner-principal-body');
-      
-      if (mobileContainer) mobileContainer.style.display = isMobile ? 'flex' : 'none';
-      if (desktopContainer) desktopContainer.style.display = isMobile ? 'none' : 'flex';
+      const mobile = document.querySelector('.body-movil-banner-principal');
+      const desktop = document.querySelector('.slider-container-banner-principal-body');
+      if (mobile) mobile.style.display = isMobile ? 'flex' : 'none';
+      if (desktop) desktop.style.display = isMobile ? 'none' : 'flex';
     }
-
-    // Inicializar
     detectDevice();
     window.addEventListener('resize', detectDevice);
 
-    // Inicializar slider para PC/Tablet
     initSlider({
       sliderSelector: `#slider-banner-principal-${sectionId}`,
       slideSelector: '.slide-banner-principal',
@@ -284,10 +239,9 @@
       prevButtonSelector: `#prev-banner-principal-${sectionId}`,
       nextButtonSelector: `#next-banner-principal-${sectionId}`,
       pauseButtonSelector: `#pause-banner-principal-${sectionId}`,
-      isMobile: false
+      allowSwipe: swipeDesktop
     });
 
-    // Inicializar slider para Móvil
     initSlider({
       sliderSelector: `#slider-banner-principal-movil-${sectionId}`,
       slideSelector: '.slide-banner-principal-movil',
@@ -295,7 +249,7 @@
       prevButtonSelector: `#prev-banner-principal-movil-${sectionId}`,
       nextButtonSelector: `#next-banner-principal-movil-${sectionId}`,
       pauseButtonSelector: `#pause-banner-principal-movil-${sectionId}`,
-      isMobile: true
+      allowSwipe: true
     });
   });
 </script>
@@ -307,87 +261,94 @@
   "class": "banner-slider-wrapper",
   "max_blocks": 10,
   "settings": [
-    {
-      "type": "select",
-      "id": "page_width",
-      "label": "Ancho de la sección",
-      "options": [
-        {
-          "value": "full",
-          "label": "Ancho completo"
-        },
-        {
-          "value": "standard",
-          "label": "Ancho estándar"
-        }
-      ],
-      "default": "full"
-    },
-    {
-      "type": "checkbox",
-      "id": "autoplay",
-      "label": "Reproducción automática",
-      "default": true
-    },
-    {
-      "type": "range",
-      "id": "autoplay_speed",
-      "label": "Velocidad de reproducción (segundos)",
-      "min": 3,
-      "max": 10,
-      "step": 1,
-      "default": 5
-    }
+    { "type": "header", "content": "Desktop — Tamaño" },
+    { "type": "select", "id": "desktop_width_mode", "label": "Ancho Desktop", "options": [
+      { "value": "full",     "label": "Ancho completo" },
+      { "value": "standard", "label": "Ancho del tema" },
+      { "value": "custom",   "label": "Personalizado (px)" }
+    ], "default": "standard" },
+    { "type": "range", "id": "desktop_container_width_px", "label": "Ancho personalizado Desktop (px)", "min": 0, "max": 3840, "step": 40, "default": 1200 },
+    { "type": "select", "id": "desktop_size_mode", "label": "Alto Desktop", "options": [
+      { "value": "aspect", "label": "Por relación de aspecto" },
+      { "value": "fixed",  "label": "Alto fijo (px)" }
+    ], "default": "aspect" },
+    { "type": "select", "id": "desktop_aspect", "label": "Relación de aspecto Desktop", "options": [
+      { "value": "16_9", "label": "16:9" },
+      { "value": "22_9", "label": "22:9 (predeterminado)" },
+      { "value": "32_9", "label": "32:9" },
+      { "value": "21_9", "label": "21:9" },
+      { "value": "4_3",  "label": "4:3" },
+      { "value": "3_2",  "label": "3:2" },
+      { "value": "2_1",  "label": "2:1" },
+      { "value": "1_1",  "label": "1:1" }
+    ], "default": "22_9" },
+    { "type": "range", "id": "desktop_height", "label": "Alto fijo Desktop (px)", "min": 200, "max": 1200, "step": 10, "default": 420 },
+
+    { "type": "header", "content": "Móvil — Tamaño" },
+    { "type": "select", "id": "mobile_width_mode", "label": "Ancho Móvil", "options": [
+      { "value": "full",     "label": "Ancho completo" },
+      { "value": "standard", "label": "Ancho del tema" },
+      { "value": "custom",   "label": "Personalizado (px)" }
+    ], "default": "standard" },
+    { "type": "range", "id": "mobile_container_width_px", "label": "Ancho personalizado Móvil (px)", "min": 240, "max": 1024, "step": 8, "default": 360 },
+    { "type": "select", "id": "mobile_size_mode", "label": "Alto Móvil", "options": [
+      { "value": "aspect", "label": "Por relación de aspecto" },
+      { "value": "fixed",  "label": "Alto fijo (px)" }
+    ], "default": "aspect" },
+    { "type": "select", "id": "mobile_aspect", "label": "Relación de aspecto Móvil", "options": [
+      { "value": "1_1",  "label": "1:1 (predeterminado)" },
+      { "value": "4_5",  "label": "4:5" },
+      { "value": "3_4",  "label": "3:4" },
+      { "value": "9_16", "label": "9:16" },
+      { "value": "16_9", "label": "16:9" }
+    ], "default": "1_1" },
+    { "type": "range", "id": "mobile_height", "label": "Alto fijo Móvil (px)", "min": 0, "max": 1600, "step": 20, "default": 500 },
+
+    { "type": "header", "content": "Margen Desktop" },
+    { "type": "range", "id": "desktop_margin", "label": "Margen exterior (px)", "min": 0, "max": 64, "step": 2, "default": 0 },
+
+    { "type": "header", "content": "Margen Móvil" },
+    { "type": "range", "id": "mobile_margin", "label": "Margen exterior (px)", "min": 0, "max": 64, "step": 2, "default": 0 },
+
+    { "type": "header", "content": "Relleno lateral (Gutters)" },
+    { "type": "range", "id": "desktop_side_padding", "label": "Padding lateral Desktop (px)", "min": 0, "max": 64, "step": 1, "default": 0 },
+    { "type": "range", "id": "mobile_side_padding",  "label": "Padding lateral Móvil (px)",   "min": 0, "max": 64, "step": 1, "default": 16 },
+
+    { "type": "header", "content": "Esquinas" },
+    { "type": "range", "id": "radius_tl", "label": "Sup-izq (px)", "min": 0, "max": 200, "step": 2, "default": 20 },
+    { "type": "range", "id": "radius_tr", "label": "Sup-der (px)", "min": 0, "max": 200, "step": 2, "default": 20 },
+    { "type": "range", "id": "radius_br", "label": "Inf-der (px)", "min": 0, "max": 200, "step": 2, "default": 20 },
+    { "type": "range", "id": "radius_bl", "label": "Inf-izq (px)", "min": 0, "max": 200, "step": 2, "default": 20 },
+
+    { "type": "header", "content": "Controles" },
+    { "type": "color", "id": "controls_bg", "label": "Fondo botones", "default": "#000000" },
+    { "type": "range", "id": "controls_bg_alpha", "label": "Opacidad fondo (%)", "min": 0, "max": 100, "step": 5, "default": 35 },
+    { "type": "color", "id": "controls_fg", "label": "Color iconos", "default": "#ffffff" },
+    { "type": "color", "id": "controls_dot", "label": "Punto inactivo", "default": "#777777" },
+    { "type": "range", "id": "controls_dot_alpha", "label": "Opacidad inactivo (%)", "min": 0, "max": 100, "step": 5, "default": 45 },
+    { "type": "color", "id": "controls_dot_active", "label": "Punto activo", "default": "#ffffff" },
+    { "type": "range", "id": "controls_dot_active_alpha", "label": "Opacidad activo (%)", "min": 0, "max": 100, "step": 5, "default": 100 },
+
+    { "type": "header", "content": "Interacción" },
+    { "type": "checkbox", "id": "autoplay", "label": "Reproducción automática", "default": true },
+    { "type": "range", "id": "autoplay_speed", "label": "Velocidad (segundos)", "min": 3, "max": 10, "step": 1, "default": 5 },
+    { "type": "checkbox", "id": "swipe_desktop", "label": "Deslizar con mouse en Desktop", "default": false }
   ],
   "blocks": [
     {
       "type": "slide",
       "name": "Banner",
       "settings": [
-        {
-          "type": "image_picker",
-          "id": "image_desktop",
-          "label": "Imagen Desktop (1400x400px recomendado)"
-        },
-        {
-          "type": "image_picker",
-          "id": "image_mobile",
-          "label": "Imagen Móvil (800x800px recomendado)"
-        },
-        {
-          "type": "url",
-          "id": "link",
-          "label": "Enlace del banner"
-        },
-        {
-          "type": "checkbox",
-          "id": "open_new_tab",
-          "label": "Abrir en nueva pestaña",
-          "default": false
-        },
-        {
-          "type": "text",
-          "id": "title",
-          "label": "Título del banner (para accesibilidad)"
-        }
+        { "type": "image_picker", "id": "image_desktop", "label": "Imagen Desktop" },
+        { "type": "image_picker", "id": "image_mobile",  "label": "Imagen Móvil" },
+        { "type": "url", "id": "link", "label": "Enlace del banner" },
+        { "type": "checkbox", "id": "open_new_tab", "label": "Abrir en nueva pestaña", "default": false },
+        { "type": "text", "id": "title", "label": "Título del banner (accesibilidad)" }
       ]
     }
   ],
   "presets": [
-    {
-      "name": "Banner Slider",
-      "blocks": [
-        {
-          "type": "slide"
-        },
-        {
-          "type": "slide"
-        },
-        {
-          "type": "slide"
-        }
-      ]
-    }
+    { "name": "Banner Slider", "blocks": [ { "type": "slide" }, { "type": "slide" }, { "type": "slide" } ] }
   ]
 }
 {% endschema %}

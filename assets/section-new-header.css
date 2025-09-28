@@ -1,0 +1,166 @@
+/* New Header — desktop + mobile header auto (burger|logo|actions + search), sticky con fallback */
+
+/* Base header (usa color elegido) */
+.nh-header{ width:100%; color:inherit; background:var(--header-bg, #fff); }
+.nh-header.has-separator{ border-bottom: var(--sep-thickness) solid var(--sep-color); }
+/* Sombra solo abajo */
+.nh-header.has-shadow{ box-shadow: 0 var(--sh-y) var(--sh-blur) var(--sh-spread) var(--sh-color); }
+
+/* Sticky nativo (desktop y móvil) */
+.nh-header[data-sticky="true"], .nh-mobile-only[data-sticky="true"]{ position: sticky; top: 0; z-index: 60; }
+/* Fallback a fixed (JS añade .is-fixed) + compensación del salto */
+.nh-header.is-fixed, .nh-mobile-only.is-fixed{ position: fixed; top:0; left:0; right:0; z-index:70; }
+body.nh-has-fixed{ padding-top: var(--nh-sticky-offset, 0px); }
+
+/* Grid desktop */
+.nh-row{ display:grid; grid-template-columns: 1fr min(100%, var(--nh-max)) 1fr; width:100%; }
+.nh-inner{ grid-column:2; display:flex; align-items:center; gap:16px; width:100%; }
+
+/* Drawer toggle (oculto) */
+.nh-drawer__toggle{
+  position:absolute; width:0; height:0; opacity:0; pointer-events:none; appearance:none;
+  display:none !important;
+}
+
+/* Hamburguesa */
+.nh-burger{
+  display:none !important;
+  width:34px; height:34px; padding:0; border:0; background:transparent; border-radius:10px;
+  align-items:center; justify-content:center; cursor:pointer;
+}
+.nh-burger__img{ width:18px; height:18px; display:block; object-fit:contain; }
+.nh-burger--placeholder{ visibility:hidden; }
+
+/* Partes */
+.nh-part{ padding: var(--pt,0) var(--pr,0) var(--pb,0) var(--pl,0); min-width: var(--minw, 0px); min-height: var(--minh, 0px); }
+.nh-part[data-grow="true"]{ flex: 1 1 var(--fixedw, 480px); }
+.nh-part[data-grow="false"]{ flex: 0 0 auto; }
+
+/* Logo */
+.nh-logo{ display:inline-flex; align-items:center; text-decoration:none; color:inherit; }
+.nh-logo__img{ height:var(--logo-h,64px) !important; width:auto !important; max-width:100%; display:block; }
+.nh-logo--text{ font-weight:700; }
+
+/* Menu */
+.nh-part--menu{ font-family: var(--menu-font, inherit); }
+.nh-menu{ display:flex; flex-wrap:wrap; gap: var(--menu-gap, 20px); list-style:none; margin:0; padding:0; }
+.nh-menu__link{ color: var(--menu-color, inherit); text-decoration:none; font-size: var(--menu-size, 16px); font-weight: var(--menu-weight, 500); letter-spacing: var(--menu-ls, normal); }
+.nh-menu__link:hover{ color: var(--menu-hover, inherit); text-decoration: none; }
+
+/* ===== Search (estilo común) ===== */
+.nh-part--search{ font-family: var(--search-font, inherit); }
+.nh-search__form{ position:relative; display:flex; width:100%; }
+
+/* Reposo: SIN sombra, borde sutil */
+.nh-search__input{
+  flex:1; min-width:0; height:40px;
+  border:1px solid rgba(0,0,0,.12); border-radius:10px; padding:0 40px 0 14px;
+  background:transparent; color: var(--search-color, inherit);
+  font-size: var(--search-size, 16px); font-weight: var(--search-weight, 400);
+  letter-spacing: var(--search-ls, normal);
+  box-shadow:none;
+  outline:none;
+  transition: box-shadow .2s ease, border-color .2s ease, background-color .2s ease;
+}
+.nh-search__input::placeholder{ color: var(--search-ph, #999); opacity:1; }
+/* Foco: sin borde visible + sombra */
+.nh-search__input:focus{
+  background:#fff;
+  border-color:transparent;
+  box-shadow: 0 4px 16px rgba(0,0,0,.18);
+  outline:none;
+}
+
+/* Lupa deshabilitada (no abre el modal de Shopify) */
+.nh-search__btn{
+  position:absolute; right:6px; top:50%; transform:translateY(-50%);
+  width:32px; height:32px; border:0; background:transparent; border-radius:8px; cursor:default; color:inherit;
+  pointer-events:none;
+}
+.nh-search__icon{ width: var(--search-icon-size, 18px); height: var(--search-icon-size, 18px); display:block; color: var(--search-icon-color, currentColor); fill: currentColor; }
+.nh-search__icon-img{ width: var(--search-icon-size, 18px); height: var(--search-icon-size, 18px); display:block; }
+
+/* Acciones — sin bordes */
+.nh-actions{ display:inline-flex; align-items:center; gap: var(--actions-gap, 10px); }
+.nh-action{ display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px; border:0; background:transparent; color:inherit; text-decoration:none; }
+.nh-action:hover{ background:rgba(0,0,0,.06); }
+.nh-part--actions[data-container="false"] .nh-action{ border:0; background: transparent; }
+.nh-icon{ width: var(--icon-size, 18px); height: var(--icon-size, 18px); display:block; color: var(--icon-color, currentColor); fill: currentColor; }
+.nh-icon-img{ width: var(--icon-size, 18px); height: var(--icon-size, 18px); display:block; }
+.nh-cart{ position:relative; }
+.nh-cart__badge{ position:absolute; top:-6px; right:-6px; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:#ff6a00; color:#fff; font-size:11px; line-height:18px; text-align:center; }
+
+/* Drawer (móvil) */
+.nh-drawer{ pointer-events:none; }
+.nh-drawer__overlay{ position:fixed; inset:0; background:rgba(0,0,0,.4); opacity:0; transition:.2s; pointer-events:none; }
+.nh-drawer__panel{ position:fixed; inset:0 auto 0 0; width:min(80vw, 360px); background:#fff; transform:translateX(-100%); transition:transform .25s ease; box-shadow: 0 10px 30px rgba(0,0,0,.25); display:flex; flex-direction:column; gap:12px; padding:16px; z-index:65; }
+.nh-drawer__top{ display:flex; align-items:center; justify-content:space-between; }
+.nh-drawer__close{ font-size:28px; line-height:1; cursor:pointer; }
+.nh-drawer__title{ font-weight:600; }
+.nh-drawer__list{ list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+.nh-drawer__list a{ color:inherit; text-decoration:none; padding:10px 6px; border-radius:8px; }
+.nh-drawer__list a:hover{ background:rgba(0,0,0,.05); }
+.nh-drawer__toggle:checked ~ .nh-drawer{ pointer-events:auto; }
+.nh-drawer__toggle:checked ~ .nh-drawer .nh-drawer__overlay{ opacity:1; pointer-events:auto; }
+.nh-drawer__toggle:checked ~ .nh-drawer .nh-drawer__panel{ transform:translateX(0); }
+
+/* Guías (editor) */
+.shopify-design-mode [data-debug="true"] .nh-inner{ outline: 1px dashed rgba(255,122,0,.45); outline-offset: 4px; }
+.shopify-design-mode [data-debug="true"] .nh-part{ position:relative; outline: 2px dashed rgba(255,122,0,.75); }
+.shopify-design-mode [data-debug="true"] .nh-part::after{ content:""; position:absolute; inset: var(--pt,0) var(--pr,0) var(--pb,0) var(--pl,0); box-shadow: inset 0 0 0 1px rgba(255,122,0,.45); pointer-events:none; border-radius:8px; }
+
+/* ===== MÓVIL ===== */
+.nh-mobile-only{ display:none; }
+
+@media (max-width: 920px){
+  /* Oculta header desktop en móvil */
+  .nh-header{ display:none; }
+
+  .nh-mobile-only{
+    display:grid;
+    grid-template-columns: 40px 1fr 80px;
+    column-gap: 8px;
+    align-items:center;
+    /* TU padding exacto */
+    padding:25px 40px 15px;
+    /* Forzamos el alto del logo en móvil */
+    --m-logo-h: 50px !important;
+    background:var(--header-bg, #fff);
+    border-bottom: var(--sep-thickness, 0) solid var(--sep-color, transparent);
+    box-shadow: 0 var(--sh-y, 0) var(--sh-blur, 0) var(--sh-spread, 0) var(--sh-color, transparent);
+    z-index:61;
+  }
+
+  .nh-mobile-only .nh-burger{ display:inline-flex !important; justify-self:start; }
+  .nh-only-logo{ justify-self:center; display:inline-flex; align-items:center; }
+  .nh-only-logo__img{ height: var(--m-logo-h, 50px); width:auto; display:block; max-width:100%; }
+  .nh-only-logo--text{ font-weight:700; font-size:16px; line-height:1; }
+  .nh-m-actions{ justify-self:end; display:inline-flex; gap:12px; }
+
+  /* Búsqueda: 20px de espacio arriba y más pequeña (36px alto) */
+  .nh-m-search{ grid-column: 1 / -1; margin-top: 20px; margin-bottom: 20px; }
+  .nh-m-search .nh-search__input{ height:36px; }
+  .nh-m-search .nh-search__btn{ pointer-events:none; } /* no abre modal al tocar la lupa */
+}
+
+@media (min-width: 921px){
+  .nh-mobile-only{ display:none; }
+
+  /* Desktop: menú en una sola línea */
+  .nh-menu{ flex-wrap: nowrap; }
+
+  /* Desktop: la búsqueda llena el resto PERO se encoje de forma segura (evita “montarse”) */
+  .nh-part--search[data-grow="true"]{
+    /* Se expande y se encoje; base responsiva con clamp */
+    flex: 1 1 clamp(180px, 24vw, 560px);
+    min-width: 180px;
+  }
+  .nh-part--search[data-grow="false"]{
+    flex: 0 1 clamp(180px, var(--fixedw, 480px), 560px);
+    min-width: 180px;
+  }
+
+  /* Sin hueco a la izquierda de los iconos */
+  .nh-part--actions{ padding-left: 0 !important; min-width: 0 !important; }
+  .nh-part--actions .nh-actions{ justify-content: flex-start; }
+}

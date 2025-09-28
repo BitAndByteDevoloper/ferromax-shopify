@@ -4,53 +4,66 @@
 */
 
 .dyn-phrases {
-  font-family: var(--dp-font);
-  color: var(--dp-text-color);
+  font-family: var(--dp-font, inherit);      /* si no hay --dp-font, hereda del tema */
+  color: var(--dp-text-color, #111111);
 }
 
+/* Contenedor externo: page-width o gutters personalizados */
+.dyn-phrases .dp-outer { width: 100%; }
+.dyn-phrases.dp-use-page-width .dp-outer > .page-width { padding: 0; }
+.dyn-phrases.dp-use-custom-gutters .dp-outer {
+  padding-left: var(--dp-gutter-l, 16px);
+  padding-right: var(--dp-gutter-r, 16px);
+}
+
+/* Contenedor interior */
 .dyn-phrases .dp-container {
-  max-width: var(--dp-maxw);
-  padding: var(--dp-container-py) var(--dp-container-px);
+  max-width: var(--dp-maxw, 1200px);
+  padding: var(--dp-container-py, 6px) var(--dp-container-px, 8px);
   margin: 0 auto;
 }
 
-.dyn-phrases.dp-full .dp-container {
-  max-width: none;
-}
+.dyn-phrases.dp-full .dp-container { max-width: none; }
 
+/* Fila: icono + frase */
 .dyn-phrases .dp-row {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: var(--dp-gap);
-  justify-content: var(--dp-align);
+  gap: var(--dp-gap, 8px);
+  justify-content: var(--dp-align, center);   /* flex-start | center | flex-end */
   width: 100%;
 }
 
+/* Icono */
 .dyn-phrases .dp-icon {
   display: inline-flex;
   line-height: 1;
   flex: 0 0 auto;
 }
+/* Ocultar wrapper cuando no hay icono (lo controla el JS con data-has-icon) */
+.dyn-phrases .dp-icon[data-has-icon="0"] { display: none; }
 
 .dyn-phrases .dp-icon-img,
 .dyn-phrases .dp-icon-svg svg {
-  width: var(--dp-icon-size);
-  height: var(--dp-icon-size);
+  width: var(--dp-icon-size, 16px);
+  height: var(--dp-icon-size, 16px);
   display: block;
 }
-
+/* Heredar color en SVG */
 .dyn-phrases .dp-icon-svg svg [fill]:not([fill="none"]) { fill: currentColor; }
 .dyn-phrases .dp-icon-svg svg [stroke]:not([stroke="none"]) { stroke: currentColor; }
 
+/* Frase (flujo natural para móvil y desktop) */
 .dyn-phrases .dp-phrase {
-  font-size: var(--dp-size);
-  font-weight: var(--dp-weight);
+  font-size: var(--dp-size, inherit);         /* si no hay --dp-size, hereda del tema */
+  font-weight: var(--dp-weight, inherit);     /* se aplica inline por JS cuando procede */
   line-height: 1.35;
-  display: inline-flex;
-  align-items: center;
-  gap: .4em;
-  text-align: var(--dp-align);
+  display: inline;                            /* texto normal, no flex, para envolver bien */
+  /* Nota: el alineado del bloque lo maneja .dp-row con --dp-align */
   transition: opacity .28s ease;
+  word-break: normal;
+  overflow-wrap: anywhere;                    /* cortes amables en móviles */
+  letter-spacing: normal;
 }
 
 .dyn-phrases .dp-phrase a {
@@ -58,12 +71,29 @@
   text-decoration: underline;
 }
 
-.dyn-phrases .dp-phrase .dp-accent {
-  color: var(--dp-accent-color);
+/* Palabras destacadas (resaltos por color/fuente/tamaño) */
+.dyn-phrases .dp-phrase .dp-hl {
+  display: inline;
+  margin: 0 .02em;         /* micro separación visual */
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
+/* Subrayado opcional como “división” del color */
+.dyn-phrases.dp-underline .dp-phrase .dp-hl {
+  border-bottom: var(--dp-hl-thickness, 2px) solid currentColor;
+  padding-bottom: .04em;
+}
+
+/* Acento clásico (compatibilidad) */
+.dyn-phrases .dp-phrase .dp-accent { color: var(--dp-accent-color, #e60000); }
+
+/* Slot HTML (cuando el metafield trae HTML) */
+.dyn-phrases .dp-html-slot { width: 100%; }
+
+/* Responsivo: centrar todo en móvil y mantener icono a un lado del texto */
 @media (max-width: 640px) {
-  .dyn-phrases .dp-phrase {
-    font-size: calc(var(--dp-size) * .9);
-  }
+  .dyn-phrases .dp-row { justify-content: center; }
+  .dyn-phrases .dp-phrase { text-align: center; }
+  .dyn-phrases .dp-phrase { font-size: calc(var(--dp-size, 1em) * .92); }
 }

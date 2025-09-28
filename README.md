@@ -4,7 +4,6 @@ Este repositorio incluye **seis secciones personalizadas** que amplían y enriqu
 
 ## 📂 Estructura de archivos
 
-```
 /sections/banner-slider.liquid
 /assets/section-banner-slider.css
 
@@ -22,7 +21,12 @@ Este repositorio incluye **seis secciones personalizadas** que amplían y enriqu
 
 /sections/icons-benefits.liquid
 /assets/section-icons-benefits.css
-```
+
+/sections/new-header.liquid
+/assets/section-new-header.css
+
+/sections/new-header.liquid
+/assets/section-new-header.css
 
 ---
 
@@ -141,6 +145,33 @@ Cada ítem puede contener un ícono SVG, un título, un subtítulo y un enlace o
 
 ---
 
+## 7.- Encabezado (Nuevo)
+**Archivos:**  
+- `sections/new-header.liquid`  
+- `assets/section-new-header.css`
+
+**Descripción:**  
+El **Nuevo Encabezado** reemplaza o complementa el header del tema Dawn, ofreciendo mayor flexibilidad y control visual. Se basa en un sistema modular de **bloques personalizables** que permiten combinar logo, menú de navegación, buscador y acciones (carrito y cuenta).  
+
+La estructura se apoya en un layout de **fila de ancho completo** con una columna central fija, lo que garantiza alineación y consistencia visual. Incorpora además **separador y sombra opcionales**, ajustes de tipografía para el menú, e integración de íconos personalizados para acciones.  
+
+El CSS añade mejoras de **responsividad**: en pantallas pequeñas los bloques se reordenan (menú, búsqueda y acciones), manteniendo usabilidad en móvil. Incluye un sistema de **guías visuales en modo editor** que muestra los límites y padding de cada bloque, muy útil durante la maquetación.  
+
+**Configuración:**  
+- Ajustar el ancho máximo del contenido central.  
+- Activar guías de depuración visibles solo en el editor.  
+- Opciones para mostrar línea separadora inferior y sombra con control de grosor, color, blur y desplazamiento.  
+- **Bloques disponibles:**  
+  - **Logo:** imagen o texto alternativo, altura ajustable, padding y tamaño mínimo.  
+  - **Menú:** enlaza a un menú de navegación de Shopify; permite tipografía heredada o personalizada, tamaño de fuente, color y hover, separación entre ítems y padding.  
+  - **Búsqueda:** caja de búsqueda con placeholder, opción de crecer ocupando todo el espacio disponible, ancho fijo base, padding y tamaños mínimos.  
+  - **Acciones:** íconos de carrito y cuenta (por defecto o personalizados en imagen/SVG), control de tamaño, color y hover, además de badge de cantidad en carrito.  
+
+**Notas:**  
+- El CSS incluye un badge dinámico en el carrito que muestra la cantidad de productos.  
+- Íconos SVG predeterminados heredan colores definidos en las variables.  
+- En dispositivos con menos de 920px de ancho, los bloques se apilan para mejorar la experiencia móvil.  
+
 ## 🚀 Instalación rápida
 
 1. Copia cada archivo en su carpeta correspondiente:
@@ -152,12 +183,14 @@ Cada ítem puede contener un ícono SVG, un título, un subtítulo y un enlace o
 /sections/blank-space.liquid
 /sections/dynamic-phrases.liquid
 /sections/icons-benefits.liquid
+/sections/new-header.liquid
 
 /assets/section-banner-slider.css
 /assets/section-mosaic-grid.css
 /assets/section-slider-logo.css
 /assets/section-dynamic-phrases.css
 /assets/section-icons-benefits.css
+/assets/section-new-header.css
 
 /snippets/slider-logo-item.liquid
 ```
@@ -169,5 +202,6 @@ Cada ítem puede contener un ícono SVG, un título, un subtítulo y un enlace o
    - “Espacio en Blanco”  
    - “Frases Dinamicas con Icono”  
    - “Iconos / Beneficios”  
+   - “Encabezado (Nuevo)”
 
 3. Configura los bloques y estilos desde el panel visual según las necesidades de tu tienda.  

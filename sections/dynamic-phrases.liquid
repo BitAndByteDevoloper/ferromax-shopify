@@ -1,122 +1,382 @@
 {% comment %}
-  Sección: Frases Dinámicas (con CSS separado)
+  Sección: Frases Dinámicas (CSS en asset separado)
   Archivo: sections/dynamic-phrases.liquid
 {% endcomment %}
 
 {{ 'section-dynamic-phrases.css' | asset_url | stylesheet_tag }}
 
-{% liquid
-  assign sec_id = section.id
-%}
+{% assign sec_id = section.id %}
+{% assign use_meta = section.settings.usar_metafield %}
+{% assign align_mode = section.settings.align_mode %}
+
+{%- style -%}
+{%- assign used_families = '' -%}
+{%- assign idxs = "1,2,3,4,5" | split: "," -%}
+{% for b in section.blocks %}
+  {% if b.type == 'phrase' %}
+    {% if b.settings.phrase_font != blank %}
+      {%- assign haystack = '|' | append: used_families | append: '|' -%}
+      {%- assign needle   = '|' | append: b.settings.phrase_font.family | append: '|' -%}
+      {% unless haystack contains needle %}
+        {{ b.settings.phrase_font | font_face: font_display: 'swap' }}
+        {%- if used_families != '' -%}{%- assign used_families = used_families | append: '|' -%}{%- endif -%}
+        {%- assign used_families = used_families | append: b.settings.phrase_font.family -%}
+      {% endunless %}
+    {% endif %}
+    {% for n in idxs %}
+      {%- assign fkey = 'hl' | append: n | append: '_font' -%}
+      {%- assign fobj = b.settings[fkey] -%}
+      {% if fobj != blank %}
+        {%- assign hay = '|' | append: used_families | append: '|' -%}
+        {%- assign ned = '|' | append: fobj.family | append: '|' -%}
+        {% unless hay contains ned %}
+          {{ fobj | font_face: font_display: 'swap' }}
+          {%- if used_families != '' -%}{%- assign used_families = used_families | append: '|' -%}{%- endif -%}
+          {%- assign used_families = used_families | append: fobj.family -%}
+        {% endunless %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
+
+/* Subrayado grosor (highlights) */
+#dyn-phrases-{{ section.id }}{ --dp-hl-thickness: {{ section.settings.hl_underline_thickness }}px; }
+{%- endstyle -%}
+
+{% assign mf = shop.metafields.custom.dynamicphrases %}
+{% assign metafield_str = '' %}
+{% if mf != blank %}
+  {% if mf.value != blank %}{% assign metafield_str = mf.value %}{% else %}{% assign metafield_str = mf %}{% endif %}
+{% endif %}
+{% assign metafield_str = metafield_str | strip %}
+{% assign meta_has_value = '' %}{% if metafield_str != '' %}{% assign meta_has_value = '1' %}{% endif %}
+{% assign meta_has_html = '' %}{% if metafield_str contains '<' %}{% assign meta_has_html = '1' %}{% endif %}
+
+<style>
+  #dyn-phrases-{{ sec_id }} { --dp-gutter-l: {{ section.settings.gutter_left_mobile }}px; --dp-gutter-r: {{ section.settings.gutter_right_mobile }}px; }
+  @media (min-width: 768px){ #dyn-phrases-{{ sec_id }} { --dp-gutter-l: {{ section.settings.gutter_left_tablet }}px; --dp-gutter-r: {{ section.settings.gutter_right_tablet }}px; } }
+  @media (min-width: 1024px){ #dyn-phrases-{{ sec_id }} { --dp-gutter-l: {{ section.settings.gutter_left_desktop }}px; --dp-gutter-r: {{ section.settings.gutter_right_desktop }}px; } }
+</style>
 
 <div id="dyn-phrases-{{ sec_id }}"
-     class="dyn-phrases{% if section.settings.full_width %} dp-full{% endif %}"
+     class="dyn-phrases{% if section.settings.full_width %} dp-full{% endif %}{% if align_mode == 'theme' %} dp-use-page-width{% else %} dp-use-custom-gutters{% endif %}{% if section.settings.hl_underline %} dp-underline{% endif %}"
      data-mode="{{ section.settings.rotation_mode }}"
      data-interval-min="{{ section.settings.interval_minutes }}"
      data-interval-sec="{{ section.settings.interval_seconds }}"
      data-seq-autoplay="{{ section.settings.seq_autoplay }}"
-     data-emphasis-class="{{ section.settings.emphasis_class | escape }}"
      data-stick-random="{{ section.settings.stick_random }}"
      data-use-customer="{{ section.settings.random_per_customer }}"
+     data-html-mode="{% if use_meta and meta_has_value == '1' and meta_has_html == '1' %}true{% else %}false{% endif %}"
+     data-prefer-windows="{{ section.settings.prefer_date_windows }}"
      style="
        --dp-text-color: {{ section.settings.text_color }};
        --dp-accent-color: {{ section.settings.accent_color }};
-       --dp-font: {{ section.settings.font_family | default: 'inherit' }};
-       --dp-size: {{ section.settings.font_size }}px;
        --dp-icon-size: {{ section.settings.icon_size }}px;
        --dp-gap: {{ section.settings.gap }}px;
        --dp-align: {{ section.settings.text_align }};
-       --dp-weight: {{ section.settings.font_weight }};
        --dp-container-py: {{ section.settings.py }}px;
        --dp-container-px: {{ section.settings.px }}px;
        --dp-maxw: {{ section.settings.max_width }}px;
      ">
-  <div class="dp-container">
-    <div class="dp-row">
-      {% if section.settings.icon_svg != blank or section.settings.icon_image != blank %}
-        <span class="dp-icon" aria-hidden="true" style="color: {{ section.settings.icon_color }};">
+
+  <div class="dp-outer">
+    {% if align_mode == 'theme' %}<div class="page-width">{% endif %}
+    <div class="dp-container">
+      <div class="dp-row">
+        {%- comment -%} Siempre renderizamos wrapper del icono; JS decide mostrar/ocultar {%- endcomment -%}
+        <span class="dp-icon dp-icon-global"
+              aria-hidden="true"
+              data-has-icon="{% if section.settings.icon_svg != blank or section.settings.icon_image != blank %}1{% else %}0{% endif %}"
+              style="color: {{ section.settings.icon_color }};">
           {% if section.settings.icon_svg != blank %}
             <span class="dp-icon-svg">{{ section.settings.icon_svg }}</span>
-          {% else %}
+          {% elsif section.settings.icon_image != blank %}
             {{ section.settings.icon_image | image_url: width: 96 | image_tag: alt: section.settings.icon_alt, class: 'dp-icon-img' }}
           {% endif %}
         </span>
-      {% endif %}
-      <span class="dp-phrase" role="status" aria-live="polite"></span>
+
+        {% if use_meta and meta_has_value == '1' and meta_has_html == '1' %}
+          <div class="dp-html-slot">{{ metafield_str }}</div>
+        {% else %}
+          <span class="dp-phrase" role="status" aria-live="polite"></span>
+        {% endif %}
+      </div>
     </div>
+    {% if align_mode == 'theme' %}</div>{% endif %}
   </div>
 
+  {%- comment -%} Probes invisibles para block select en editor {%- endcomment -%}
+  <div class="dp-probes" aria-hidden="true" style="display:none">
+    {% for block in section.blocks %}
+      <span {{ block.shopify_attributes }} data-bid="{{ block.id }}"></span>
+    {% endfor %}
+  </div>
+
+  {%- comment -%} Data para JS: si metafield no es HTML, pasamos raw_meta con todo el texto {%- endcomment -%}
   <script type="application/json" id="dp-data-{{ sec_id }}">
     {
-      "phrases": [
-        {% for b in section.blocks %}
-          {
-            "text": {{ b.settings.text | json }},
-            "link": {{ b.settings.link | json }},
-            "accent": {{ b.settings.emphasis | json }}
-          }{% unless forloop.last %},{% endunless %}
-        {% endfor %}
-      ]
+      {% if use_meta and meta_has_value == '1' and meta_has_html != '1' %}
+        "raw_meta": {{ metafield_str | json }},
+        "phrases": []
+      {% else %}
+        "raw_meta": null,
+        "phrases": [
+          {% assign idxs = "1,2,3,4,5" | split: "," %}
+          {% for b in section.blocks %}
+            {
+              "text": {{ b.settings.text | json }},
+              "link": {{ b.settings.link | json }},
+              "pcolor": {{ b.settings.phrase_color | json }},
+              "pfont_family": {% if b.settings.phrase_font != blank %}{{ b.settings.phrase_font.family | json }}{% else %}null{% endif %},
+              "pfont_fallback": {% if b.settings.phrase_font != blank %}{{ b.settings.phrase_font.fallback_families | json }}{% else %}null{% endif %},
+              "pfont_weight": {{ b.settings.phrase_font_weight | default: 0 | json }},
+              "pfont_style": {{ b.settings.phrase_font_style | default: 'auto' | json }},
+              "psize": {{ b.settings.phrase_font_size | json }},
+              "icon_svg": {{ b.settings.icon_svg | json }},
+              "icon_image": {% if b.settings.icon_image != blank %}{{ b.settings.icon_image | image_url: width: 96 | json }}{% else %}null{% endif %},
+              "icon_color": {{ b.settings.icon_color | json }},
+              "start": {{ b.settings.start_date | json }},
+              "start_time": {{ b.settings.start_time | json }},
+              "end": {{ b.settings.end_date | json }},
+              "end_time": {{ b.settings.end_time | json }},
+              "highlights": [
+                {%- assign printed = false -%}
+                {%- for n in idxs -%}
+                  {%- assign term = "hl" | append: n | append: "_term" -%}
+                  {%- assign color = "hl" | append: n | append: "_color" -%}
+                  {%- assign fontp = "hl" | append: n | append: "_font" -%}
+                  {%- assign weight = "hl" | append: n | append: "_weight" -%}
+                  {%- assign style  = "hl" | append: n | append: "_style" -%}
+                  {%- assign size   = "hl" | append: n | append: "_size" -%}
+                  {%- assign fobj   = b.settings[fontp] -%}
+                  {%- if b.settings[term] != blank -%}
+                    {%- if printed -%},{%- endif -%}
+                    {
+                      "term": {{ b.settings[term] | json }},
+                      "color": {{ b.settings[color] | json }},
+                      "hfont_family": {% if fobj != blank %}{{ fobj.family | json }}{% else %}null{% endif %},
+                      "hfont_fallback": {% if fobj != blank %}{{ fobj.fallback_families | json }}{% else %}null{% endif %},
+                      "hfont_weight": {{ b.settings[weight] | default: 0 | json }},
+                      "hfont_style": {{ b.settings[style] | default: 'auto' | json }},
+                      "size": {{ b.settings[size] | json }}
+                    }
+                    {%- assign printed = true -%}
+                  {%- endif -%}
+                {%- endfor -%}
+              ],
+              "bid": {{ b.id | json }}
+            }{% unless forloop.last %},{% endunless %}
+          {% endfor %}
+        ]
+      {% endif %}
     }
   </script>
 </div>
 
 <script>
-/* Inline JS for Dynamic Phrases */
 (function() {
   const root = document.getElementById('dyn-phrases-{{ sec_id }}');
   if (!root) return;
 
-  const data = JSON.parse(document.getElementById('dp-data-{{ sec_id }}').textContent || '{"phrases": []}');
-  const phrases = Array.isArray(data.phrases) ? data.phrases.filter(p => p && p.text) : [];
+  // Si el metafield trae HTML, no hay rotación
+  if (root.dataset.htmlMode === 'true') return;
+
+  // Leer data
+  const dataNode = document.getElementById('dp-data-{{ sec_id }}');
+  let data = { raw_meta: null, phrases: [] };
+  try { if (dataNode) data = JSON.parse(dataNode.textContent || '{}'); } catch(e){}
+
+  // --- Construcción desde metafield (JSON por línea o texto simple) ---
+  function parseMetaLine(line) {
+    const t = (line || '').trim();
+    if (!t) return null;
+    if (t[0] === '{' && t[t.length-1] === '}') {
+      try {
+        const o = JSON.parse(t);
+        return {
+          text: o.text || '',
+          link: o.link || null,
+          pcolor: o.color || null,
+          pfont_family: (o.font && o.font.family) ? o.font.family : (o.font_family || null),
+          pfont_fallback: (o.font && o.font.fallback) ? o.font.fallback : (o.font_fallback || null),
+          pfont_weight: o.weight || 0,
+          pfont_style:  o.style  || 'auto',
+          psize: o.size || 0,
+          icon_svg: o.icon_svg || null,
+          icon_image: o.icon_image || null,
+          icon_color: o.icon_color || null,
+          start: o.start || null,
+          start_time: o.start_time || null,
+          end: o.end || null,
+          end_time: o.end_time || null,
+          highlights: Array.isArray(o.highlights) ? o.highlights.map(h => ({
+            term: h.term || '',
+            color: h.color || null,
+            hfont_family: (h.font && h.font.family) ? h.font.family : (h.font_fallback || h.font_family || null),
+            hfont_fallback: (h.font && h.font.fallback) ? h.font.fallback : (h.hfont_fallback || null),
+            hfont_weight: h.weight || 0,
+            hfont_style:  h.style  || 'auto',
+            size: h.size || 0
+          })) : [],
+          bid: null
+        };
+      } catch(e) {
+        /* cae a texto simple */
+      }
+    }
+    return {
+      text: t, link: null, pcolor: null,
+      pfont_family: null, pfont_fallback: null,
+      pfont_weight: 0, pfont_style: 'auto', psize: 0,
+      icon_svg: null, icon_image: null, icon_color: null,
+      start: null, start_time: null, end: null, end_time: null,
+      highlights: [], bid: null
+    };
+  }
+  function buildPhrasesFromMeta(raw) {
+    if (!raw) return [];
+    const asText = String(raw).replace(/<br\s*\/?>/gi, '\n');
+    return asText.split(/\r?\n/).map(parseMetaLine).filter(Boolean);
+  }
+
+  // Unificar frases: metafield o bloques
+  let phrases = [];
+  if (data.raw_meta) {
+    phrases = buildPhrasesFromMeta(data.raw_meta);
+  } else if (Array.isArray(data.phrases)) {
+    phrases = data.phrases.filter(p => p && p.text);
+  }
   const phraseEl = root.querySelector('.dp-phrase');
   if (!phraseEl || !phrases.length) return;
 
+  // Controles de rotación
   const mode = root.dataset.mode || 'random_each_visit';
   const intervalMin = parseInt(root.dataset.intervalMin || '0', 10);
   const intervalSec = parseInt(root.dataset.intervalSec || '0', 10);
   const autoplay = root.dataset.seqAutoplay === 'true';
   const stickRandom = root.dataset.stickRandom === 'true';
   const useCustomer = root.dataset.useCustomer === 'true';
-  const emphasisClass = root.dataset.emphasisClass || 'dp-accent';
+  const preferWindows = root.dataset.preferWindows === 'true';
 
-  function decorate(text, accentSpec) {
-    if (!accentSpec) return text;
-    try {
-      const parts = accentSpec.split('|').map(s => s.trim()).filter(Boolean);
-      if (!parts.length) return text;
-      let out = text;
-      parts.forEach(p => {
-        const re = new RegExp('(' + p.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&') + ')','gi');
-        out = out.replace(re, `<span class="${emphasisClass}">$1</span>`);
-      });
-      return out;
-    } catch (_) {
-      return text;
+  // Icono global wrapper
+  const iconWrap = root.querySelector('.dp-icon-global');
+  const defaultIconHTML = iconWrap ? iconWrap.innerHTML : '';
+  const defaultIconColor = iconWrap ? iconWrap.style.color : '';
+  const defaultIconHas  = iconWrap ? (iconWrap.getAttribute('data-has-icon') === '1') : false;
+
+  function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  function decorateWithHighlights(text, highlights) {
+    let out = text;
+    if (!Array.isArray(highlights)) return out;
+    highlights.forEach(h => {
+      if (!h || !h.term) return;
+      const styles = [];
+      if (h.color) styles.push(`color:${h.color}`);
+      if (h.hfont_family) styles.push(`font-family:${h.hfont_family}${h.hfont_fallback ? ', ' + h.hfont_fallback : ''}`);
+      const hw = parseInt(h.hfont_weight, 10); if (!isNaN(hw) && hw > 0) styles.push(`font-weight:${hw}`);
+      if (h.hfont_style && h.hfont_style !== 'auto') styles.push(`font-style:${h.hfont_style}`);
+      const hs = parseInt(h.size, 10); if (!isNaN(hs) && hs > 0) styles.push(`font-size:${hs}px`);
+      const styleAttr = styles.length ? ` style="${styles.join(';')}"` : '';
+      const re = new RegExp(`(${escRe(h.term)})`, 'gi');
+      out = out.replace(re, `<span class="dp-hl"${styleAttr}>$1</span>`);
+    });
+    return out;
+  }
+
+  function safeSetIconSVG(target, raw){
+    if (!target) return;
+    if (!raw) { target.innerHTML = ''; target.style.color = defaultIconColor || ''; return; }
+    const t = String(raw).trim();
+    if (!/^<svg[\s\S]*<\/svg>$/i.test(t)) { target.innerHTML = ''; target.style.color = defaultIconColor || ''; return; }
+    target.innerHTML = `<span class="dp-icon-svg">${t}</span>`;
+  }
+
+  function setIconForPhrase(item) {
+    if (!iconWrap) return;
+    iconWrap.style.display = 'none';
+    iconWrap.setAttribute('data-has-icon','0');
+
+    if (item.icon_svg || item.icon_image) {
+      if (item.icon_svg) { safeSetIconSVG(iconWrap, item.icon_svg); }
+      else if (item.icon_image) { iconWrap.innerHTML = `<img class="dp-icon-img" alt="Icon" src="${item.icon_image}" />`; }
+      iconWrap.style.color = item.icon_color || defaultIconColor || '';
+      iconWrap.style.display = 'inline-flex';
+      iconWrap.setAttribute('data-has-icon','1');
+      return;
+    }
+    if (defaultIconHas) {
+      iconWrap.innerHTML = defaultIconHTML;
+      iconWrap.style.color = defaultIconColor || '';
+      iconWrap.style.display = 'inline-flex';
+      iconWrap.setAttribute('data-has-icon','1');
+    } else {
+      iconWrap.innerHTML = '';
+      iconWrap.style.display = 'none';
+      iconWrap.setAttribute('data-has-icon','0');
     }
   }
 
+  function parseLocalDateTime(d, t){
+    if (!d || typeof d !== 'string') return null;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d.trim());
+    if (!m) return null;
+    const time = (t && /^\d{2}:\d{2}$/.test(t.trim())) ? t.trim() : '00:00';
+    return new Date(`${m[1]}-${m[2]}-${m[3]}T${time}:00`);
+  }
+  function isInWindow(item, now){
+    const s = parseLocalDateTime(item.start, item.start_time);
+    const e = parseLocalDateTime(item.end, item.end_time);
+    if (!s && !e) return true;
+    if (s && now < s) return false;
+    if (e && now > e) return false;
+    return true;
+  }
+  function buildPool(){
+    const now = new Date();
+    const eligible = phrases.filter(p => isInWindow(p, now));
+    if (!preferWindows) return eligible;
+    const windowedActive = eligible.filter(p => p.start || p.end);
+    return windowedActive.length ? windowedActive : eligible;
+  }
+
+  let pool = buildPool();
+  if (!pool.length) pool = phrases.slice();
+
   function setPhrase(index) {
-    const item = phrases[index % phrases.length];
-    const html = decorate(item.text, item.accent);
-    const inner = item.link ? `<a href="${item.link}">${html}</a>` : html;
+    const item = pool[index % pool.length];
+    let html = String(item.text || '');
+    html = decorateWithHighlights(html, item.highlights);
+
+    const styleParts = [];
+    (function applyFont(){
+      let ff = item.pfont_family ? (item.pfont_fallback ? `${item.pfont_family}, ${item.pfont_fallback}` : item.pfont_family) : null;
+      if (ff) styleParts.push(`font-family:${ff}`);
+      const fw = parseInt(item.pfont_weight, 10); if (!isNaN(fw) && fw > 0) styleParts.push(`font-weight:${fw}`);
+      if (item.pfont_style && item.pfont_style !== 'auto') styleParts.push(`font-style:${item.pfont_style}`);
+      const fs = parseInt(item.psize, 10); if (!isNaN(fs) && fs > 0) styleParts.push(`font-size:${fs}px`);
+      if (item.pcolor) styleParts.push(`color:${item.pcolor}`);
+    })();
+
+    const content = item.link ? `<a href="${item.link}">${html}</a>` : html;
+
     phraseEl.style.opacity = '0';
     requestAnimationFrame(() => {
       setTimeout(() => {
-        phraseEl.innerHTML = inner;
+        phraseEl.setAttribute('style', (styleParts.length ? styleParts.join(';')+';' : '') + 'transition:opacity .28s ease;');
+        phraseEl.innerHTML = content;
         phraseEl.style.opacity = '1';
-      }, 120);
+      }, 100);
     });
+
+    setIconForPhrase(item);
   }
 
-  function hashStr(str) {
-    let h = 2166136261 >>> 0;
-    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
-    return h >>> 0;
-  }
+  function hashStr(str){ let h = 2166136261>>>0; for (let i=0;i<str.length;i++){h^=str.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0; }
 
   const now = new Date();
-  const minutesBucket = now.getUTCFullYear() * 525600 + now.getUTCMonth()*44640 + now.getUTCDate()*1440 + now.getUTCHours()*60 + now.getUTCMinutes();
+  const minutesBucket = now.getUTCFullYear() * 525600 + now.getUTCMonth()*44640 + now.getUTCDate()*1440 + now.getUTCOuts || 0;
+
   const hoursBucket   = now.getUTCFullYear() * 8760 + now.getUTCMonth()*720 + now.getUTCDate()*24 + now.getUTCHours();
   const daysBucket    = Math.floor(now.getTime() / 86400000);
   const monthsBucket  = now.getUTCFullYear()*12 + now.getUTCMonth();
@@ -132,26 +392,26 @@
 
   function initialIndex() {
     switch (mode) {
-      case 'random_each_visit': return Math.floor(Math.random() * phrases.length);
+      case 'random_each_visit': return Math.floor(Math.random() * pool.length);
       case 'random_per_session': {
         const saved = sessionStorage.getItem(sessionKey);
-        if (saved !== null) return Number(saved) % phrases.length;
-        const idx = Math.floor(Math.random() * phrases.length);
+        if (saved !== null) return Number(saved) % pool.length;
+        const idx = Math.floor(Math.random() * pool.length);
         sessionStorage.setItem(sessionKey, String(idx));
         return idx;
       }
       case 'random_per_user': {
-        if (useCustomer && customerSeed) return hashStr('u:' + customerSeed) % phrases.length;
+        if (useCustomer && customerSeed) return hashStr('u:' + customerSeed) % pool.length;
         const saved = localStorage.getItem(storageKey);
-        if (saved !== null && stickRandom) return Number(saved) % phrases.length;
-        const idx = Math.floor(Math.random() * phrases.length);
+        if (saved !== null && stickRandom) return Number(saved) % pool.length;
+        const idx = Math.floor(Math.random() * pool.length);
         localStorage.setItem(storageKey, String(idx));
         return idx;
       }
-      case 'time_minutes': return Math.abs(minutesBucket) % phrases.length;
-      case 'time_hours':   return Math.abs(hoursBucket) % phrases.length;
-      case 'time_days':    return Math.abs(daysBucket) % phrases.length;
-      case 'time_months':  return Math.abs(monthsBucket) % phrases.length;
+      case 'time_minutes': return Math.abs(minutesBucket) % pool.length;
+      case 'time_hours':   return Math.abs(hoursBucket) % pool.length;
+      case 'time_days':    return Math.abs(daysBucket) % pool.length;
+      case 'time_months':  return Math.abs(monthsBucket) % pool.length;
       case 'sequential':
       default: return 0;
     }
@@ -179,8 +439,10 @@
     if (!ms) return;
     if (timer) clearInterval(timer);
     timer = setInterval(() => {
+      pool = buildPool();
+      if (!pool.length) pool = phrases.slice();
       if (mode === 'sequential' || mode === 'random_each_visit') {
-        idx = (mode === 'sequential') ? (idx + 1) % phrases.length : Math.floor(Math.random() * phrases.length);
+        idx = (mode === 'sequential') ? (idx + 1) % pool.length : Math.floor(Math.random() * pool.length);
       } else {
         idx = initialIndex();
       }
@@ -188,82 +450,208 @@
     }, ms);
   }
   start();
+
+  // Editor: seleccionar bloque muestra esa frase
+  if (window.Shopify && Shopify.designMode) {
+    document.addEventListener('shopify:block:select', function(e){
+      if (!e || !e.detail || !e.detail.blockId) return;
+      const i = phrases.findIndex(p => p && p.bid === e.detail.blockId);
+      if (i >= 0) {
+        if (timer) { clearInterval(timer); timer = null; }
+        pool = phrases.slice();
+        idx = i;
+        setPhrase(idx);
+      }
+    });
+    document.addEventListener('shopify:block:deselect', function(){
+      if (!timer) start();
+    });
+    // Click para avanzar (solo en editor)
+    root.addEventListener('click', function(ev){
+      if (!ev.target.closest('.dp-row')) return;
+      if (timer) { clearInterval(timer); timer = null; }
+      idx = (idx + 1) % pool.length;
+      setPhrase(idx);
+    });
+  }
 })();
 </script>
 
 {% schema %}
 {
-  "name": "Dynamic Phrases with Icon",
+  "name": "Frases dinámicas",
   "class": "section-dyn-phrases",
   "settings": [
-    { "type": "checkbox", "id": "full_width", "label": "Use full width", "default": false },
-    { "type": "color", "id": "text_color", "label": "Text color", "default": "#111111" },
-    { "type": "color", "id": "accent_color", "label": "Accent color", "default": "#e60000" },
-    { "type": "text", "id": "font_family", "label": "Font family (CSS)", "default": "inherit" },
-    { "type": "select", "id": "font_weight", "label": "Font weight", "default": "600",
+    { "type": "checkbox", "id": "full_width", "label": "Usar ancho completo", "default": false },
+
+    { "type": "header", "content": "Alineación y bordes" },
+    { "type": "select", "id": "align_mode", "label": "Modo de alineación", "default": "theme",
       "options": [
-        { "value": "400", "label": "Normal (400)" },
-        { "value": "500", "label": "Medium (500)" },
-        { "value": "600", "label": "Semibold (600)" },
-        { "value": "700", "label": "Bold (700)" }
+        { "value": "theme", "label": "Usar .page-width" },
+        { "value": "custom", "label": "Gutiers personalizados" }
       ]
     },
-    { "type": "range", "id": "font_size", "min": 10, "max": 48, "step": 1, "unit": "px", "label": "Font size", "default": 18 },
-    { "type": "select", "id": "text_align", "label": "Alignment", "default": "center",
+    { "type": "range", "id": "gutter_left_mobile",  "label": "Borde izq. móvil (px)",  "min": 0, "max": 120, "step": 2, "default": 16 },
+    { "type": "range", "id": "gutter_right_mobile", "label": "Borde der. móvil (px)",   "min": 0, "max": 120, "step": 2, "default": 16 },
+    { "type": "range", "id": "gutter_left_tablet",  "label": "Borde izq. tablet (px)", "min": 0, "max": 120, "step": 2, "default": 24 },
+    { "type": "range", "id": "gutter_right_tablet", "label": "Borde der. tablet (px)",  "min": 0, "max": 120, "step": 2, "default": 24 },
+    { "type": "range", "id": "gutter_left_desktop", "label": "Borde izq. desktop (px)", "min": 0, "max": 120, "step": 2, "default": 64 },
+    { "type": "range", "id": "gutter_right_desktop","label": "Borde der. desktop (px)",  "min": 0, "max": 120, "step": 2, "default": 64 },
+
+    { "type": "header", "content": "Colores" },
+    { "type": "color", "id": "text_color", "label": "Color de texto", "default": "#111111" },
+    { "type": "color", "id": "accent_color", "label": "Color de énfasis", "default": "#e60000" },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "select","id": "text_align", "label": "Alineación del texto", "default": "center",
       "options": [
-        { "value": "flex-start", "label": "Left" },
-        { "value": "center", "label": "Center" },
-        { "value": "flex-end", "label": "Right" }
+        { "value": "flex-start", "label": "Izquierda" },
+        { "value": "center",     "label": "Centro" },
+        { "value": "flex-end",   "label": "Derecha" }
       ]
     },
-    { "type": "range", "id": "max_width", "min": 320, "max": 1320, "step": 10, "unit": "px", "label": "Max width (if not full)", "default": 1200 },
+    { "type": "range", "id": "max_width", "min": 320, "max": 1320, "step": 10, "unit": "px", "label": "Ancho máximo", "default": 1200 },
     { "type": "range", "id": "px", "min": 0, "max": 80, "step": 2, "unit": "px", "label": "Padding X", "default": 8 },
     { "type": "range", "id": "py", "min": 0, "max": 80, "step": 2, "unit": "px", "label": "Padding Y", "default": 6 },
-    { "type": "range", "id": "gap", "min": 4, "max": 48, "step": 2, "unit": "px", "label": "Gap between icon and text", "default": 8 },
+    { "type": "range", "id": "gap", "min": 4, "max": 48, "step": 2, "unit": "px", "label": "Espacio icono-texto", "default": 8 },
 
-    { "type": "header", "content": "Icon" },
-    { "type": "image_picker", "id": "icon_image", "label": "Icon as image (optional)" },
-    { "type": "text", "id": "icon_svg", "label": "Icon as SVG (paste code)" },
-    { "type": "text", "id": "icon_alt", "label": "Icon alt", "default": "Icon" },
-    { "type": "color", "id": "icon_color", "label": "Icon color (SVG)", "default": "#111111" },
-    { "type": "range", "id": "icon_size", "min": 12, "max": 64, "step": 1, "unit": "px", "label": "Icon size", "default": 16 },
+    { "type": "header", "content": "Icono (global)" },
+    { "type": "image_picker", "id": "icon_image", "label": "Icono imagen" },
+    { "type": "text", "id": "icon_svg", "label": "Icono SVG (código)" },
+    { "type": "text", "id": "icon_alt", "label": "Alt del icono", "default": "Icono" },
+    { "type": "color", "id": "icon_color", "label": "Color del icono", "default": "#111111" },
+    { "type": "range", "id": "icon_size", "min": 12, "max": 64, "step": 1, "unit": "px", "label": "Tamaño del icono", "default": 16 },
 
-    { "type": "header", "content": "Rotation" },
-    { "type": "select", "id": "rotation_mode", "label": "Rotation mode", "default": "random_each_visit",
+    { "type": "header", "content": "Rotación" },
+    { "type": "select", "id": "rotation_mode", "label": "Modo", "default": "random_each_visit",
       "options": [
-        { "value": "sequential", "label": "Sequential" },
-        { "value": "random_each_visit", "label": "Random each visit" },
-        { "value": "random_per_session", "label": "Random per session" },
-        { "value": "random_per_user", "label": "Random per user" },
-        { "value": "time_minutes", "label": "Change by MINUTES" },
-        { "value": "time_hours", "label": "Change by HOURS" },
-        { "value": "time_days", "label": "Change by DAYS" },
-        { "value": "time_months", "label": "Change by MONTHS" }
+        { "value": "sequential", "label": "Secuencial" },
+        { "value": "random_each_visit", "label": "Aleatorio visita" },
+        { "value": "random_per_session","label": "Aleatorio sesión" },
+        { "value": "random_per_user",   "label": "Aleatorio usuario" },
+        { "value": "time_minutes",      "label": "Por minutos" },
+        { "value": "time_hours",        "label": "Por horas" },
+        { "value": "time_days",         "label": "Por días" },
+        { "value": "time_months",       "label": "Por meses" }
       ]
     },
-    { "type": "checkbox", "id": "seq_autoplay", "label": "Autoplay in Sequential", "default": true },
-    { "type": "number", "id": "interval_minutes", "label": "Interval: minutes (optional)", "default": 0 },
-    { "type": "number", "id": "interval_seconds", "label": "Interval: seconds (optional)", "default": 0 },
-    { "type": "checkbox", "id": "stick_random", "label": "Persist choice in Random per user", "default": true },
-    { "type": "checkbox", "id": "random_per_customer", "label": "Use customer ID if logged in", "default": true },
+    { "type": "checkbox", "id": "seq_autoplay", "label": "Autoplay en Secuencial", "default": true },
+    { "type": "number", "id": "interval_minutes", "label": "Intervalo (minutos)", "default": 0 },
+    { "type": "number", "id": "interval_seconds", "label": "Intervalo (segundos)", "default": 0 },
 
-    { "type": "header", "content": "Emphasis" },
-    { "type": "text", "id": "emphasis_class", "label": "CSS class for emphasis", "default": "dp-accent" }
+    { "type": "header", "content": "Ventanas de fecha" },
+    { "type": "checkbox", "id": "prefer_date_windows", "label": "Preferir frases con fecha activa", "default": true },
+
+    { "type": "header", "content": "Fuente de datos" },
+    { "type": "checkbox", "id": "usar_metafield", "label": "Usar metafield custom.dynamicphrases", "default": false },
+
+    { "type": "header", "content": "Highlights" },
+    { "type": "checkbox", "id": "hl_underline", "label": "Subrayar destacadas", "default": false },
+    { "type": "range", "id": "hl_underline_thickness", "label": "Grosor subrayado (px)", "min": 1, "max": 6, "step": 1, "default": 2 }
   ],
   "blocks": [
     {
       "type": "phrase",
-      "name": "Phrase",
+      "name": "Frase",
       "settings": [
-        { "type": "text", "id": "text", "label": "Phrase text", "default": "Back to School! Discounts are back!" },
-        { "type": "url",  "id": "link", "label": "Link (optional)" },
-        { "type": "text", "id": "emphasis", "label": "Words to emphasize (| separated)" }
+        { "type": "text", "id": "text", "label": "Texto de la frase", "default": "¡Regresan las Clases! ¡Y los Descuentos también!" },
+        { "type": "url",  "id": "link", "label": "Enlace (opcional)" },
+
+        { "type": "header", "content": "Colores y tipografía" },
+        { "type": "color", "id": "phrase_color", "label": "Color de texto", "default": "#111111" },
+        { "type": "font_picker", "id": "phrase_font", "label": "Tipografía (font picker)", "default": "inter_n4" },
+        { "type": "select", "id": "phrase_font_weight", "label": "Peso (0 = heredar)", "default": "0",
+          "options": [
+            { "value": "0", "label": "Heredar" },
+            { "value": "300", "label": "Light 300" },
+            { "value": "400", "label": "Regular 400" },
+            { "value": "500", "label": "Medium 500" },
+            { "value": "600", "label": "Semi Bold 600" },
+            { "value": "700", "label": "Bold 700" },
+            { "value": "800", "label": "Extra Bold 800" },
+            { "value": "900", "label": "Black 900" }
+          ]
+        },
+        { "type": "select", "id": "phrase_font_style", "label": "Estilo", "default": "auto",
+          "options": [
+            { "value": "auto", "label": "Heredar" },
+            { "value": "normal", "label": "Normal" },
+            { "value": "italic", "label": "Italic" }
+          ]
+        },
+        { "type": "range", "id": "phrase_font_size", "min": 0, "max": 48, "step": 1, "unit": "px", "label": "Tamaño (0 = heredar)", "default": 0 },
+
+        { "type": "header", "content": "Icono por frase" },
+        { "type": "image_picker", "id": "icon_image", "label": "Icono imagen" },
+        { "type": "text", "id": "icon_svg", "label": "Icono SVG (código)" },
+        { "type": "color", "id": "icon_color", "label": "Color del icono", "default": "#111111" },
+
+        { "type": "header", "content": "Ventana de fecha" },
+        { "type": "text", "id": "start_date", "label": "Inicio (YYYY-MM-DD)" },
+        { "type": "text", "id": "start_time", "label": "Hora inicio (HH:MM)" },
+        { "type": "text", "id": "end_date", "label": "Fin (YYYY-MM-DD)" },
+        { "type": "text", "id": "end_time", "label": "Hora fin (HH:MM)" },
+
+        { "type": "header", "content": "Palabras con estilo" },
+
+        { "type": "text", "id": "hl1_term", "label": "Expresión #1" },
+        { "type": "color", "id": "hl1_color", "label": "Color #1", "default": "#111111" },
+        { "type": "font_picker", "id": "hl1_font", "label": "Fuente #1", "default": "inter_n4" },
+        { "type": "select", "id": "hl1_weight", "label": "Peso #1 (0 = heredar)", "default": "0",
+          "options": [ { "value": "0", "label": "Heredar" }, { "value": "300", "label": "300" }, { "value": "400", "label": "400" }, { "value": "500", "label": "500" }, { "value": "600", "label": "600" }, { "value": "700", "label": "700" }, { "value": "800", "label": "800" }, { "value": "900", "label": "900" } ]
+        },
+        { "type": "select", "id": "hl1_style", "label": "Estilo #1", "default": "auto",
+          "options": [ { "value": "auto", "label": "Heredar" }, { "value": "normal", "label": "Normal" }, { "value": "italic", "label": "Italic" } ]
+        },
+        { "type": "range", "id": "hl1_size", "min": 0, "max": 60, "step": 1, "unit": "px", "label": "Tamaño #1 (0 = heredar)", "default": 0 },
+
+        { "type": "text", "id": "hl2_term", "label": "Expresión #2" },
+        { "type": "color", "id": "hl2_color", "label": "Color #2", "default": "#111111" },
+        { "type": "font_picker", "id": "hl2_font", "label": "Fuente #2", "default": "inter_n4" },
+        { "type": "select", "id": "hl2_weight", "label": "Peso #2 (0 = heredar)", "default": "0",
+          "options": [ { "value": "0", "label": "Heredar" }, { "value": "300", "label": "300" }, { "value": "400", "label": "400" }, { "value": "500", "label": "500" }, { "value": "600", "label": "600" }, { "value": "700", "label": "700" }, { "value": "800", "label": "800" }, { "value": "900", "label": "900" } ]
+        },
+        { "type": "select", "id": "hl2_style", "label": "Estilo #2", "default": "auto",
+          "options": [ { "value": "auto", "label": "Heredar" }, { "value": "normal", "label": "Normal" }, { "value": "italic", "label": "Italic" } ]
+        },
+        { "type": "range", "id": "hl2_size", "min": 0, "max": 60, "step": 1, "unit": "px", "label": "Tamaño #2 (0 = heredar)", "default": 0 },
+
+        { "type": "text", "id": "hl3_term", "label": "Expresión #3" },
+        { "type": "color", "id": "hl3_color", "label": "Color #3", "default": "#111111" },
+        { "type": "font_picker", "id": "hl3_font", "label": "Fuente #3", "default": "inter_n4" },
+        { "type": "select", "id": "hl3_weight", "label": "Peso #3 (0 = heredar)", "default": "0",
+          "options": [ { "value": "0", "label": "Heredar" }, { "value": "300", "label": "300" }, { "value": "400", "label": "400" }, { "value": "500", "label": "500" }, { "value": "600", "label": "600" }, { "value": "700", "label": "700" }, { "value": "800", "label": "800" }, { "value": "900", "label": "900" } ]
+        },
+        { "type": "select", "id": "hl3_style", "label": "Estilo #3", "default": "auto",
+          "options": [ { "value": "auto", "label": "Heredar" }, { "value": "normal", "label": "Normal" }, { "value": "italic", "label": "Italic" } ]
+        },
+        { "type": "range", "id": "hl3_size", "min": 0, "max": 60, "step": 1, "unit": "px", "label": "Tamaño #3 (0 = heredar)", "default": 0 },
+
+        { "type": "text", "id": "hl4_term", "label": "Expresión #4" },
+        { "type": "color", "id": "hl4_color", "label": "Color #4", "default": "#111111" },
+        { "type": "font_picker", "id": "hl4_font", "label": "Fuente #4", "default": "inter_n4" },
+        { "type": "select", "id": "hl4_weight", "label": "Peso #4 (0 = heredar)", "default": "0",
+          "options": [ { "value": "0", "label": "Heredar" }, { "value": "300", "label": "300" }, { "value": "400", "label": "400" }, { "value": "500", "label": "500" }, { "value": "600", "label": "600" }, { "value": "700", "label": "700" }, { "value": "800", "label": "800" }, { "value": "900", "label": "900" } ]
+        },
+        { "type": "select", "id": "hl4_style", "label": "Estilo #4", "default": "auto",
+          "options": [ { "value": "auto", "label": "Heredar" }, { "value": "normal", "label": "Normal" }, { "value": "italic", "label": "Italic" } ]
+        },
+        { "type": "range", "id": "hl4_size", "min": 0, "max": 60, "step": 1, "unit": "px", "label": "Tamaño #4 (0 = heredar)", "default": 0 },
+
+        { "type": "text", "id": "hl5_term", "label": "Expresión #5" },
+        { "type": "color", "id": "hl5_color", "label": "Color #5", "default": "#111111" },
+        { "type": "font_picker", "id": "hl5_font", "label": "Fuente #5", "default": "inter_n4" },
+        { "type": "select", "id": "hl5_weight", "label": "Peso #5 (0 = heredar)", "default": "0",
+          "options": [ { "value": "0", "label": "Heredar" }, { "value": "300", "label": "300" }, { "value": "400", "label": "400" }, { "value": "500", "label": "500" }, { "value": "600", "label": "600" }, { "value": "700", "label": "700" }, { "value": "800", "label": "800" }, { "value": "900", "label": "900" } ]
+        },
+        { "type": "select", "id": "hl5_style", "label": "Estilo #5", "default": "auto",
+          "options": [ { "value": "auto", "label": "Heredar" }, { "value": "normal", "label": "Normal" }, { "value": "italic", "label": "Italic" } ]
+        },
+        { "type": "range", "id": "hl5_size", "min": 0, "max": 60, "step": 1, "unit": "px", "label": "Tamaño #5 (0 = heredar)", "default": 0 }
       ]
     }
   ],
   "max_blocks": 50,
-  "presets": [
-    { "name": "Dynamic Phrases with Icon", "category": "Text" }
-  ]
+  "presets": [ { "name": "Frases dinámicas", "category": "Texto" } ]
 }
 {% endschema %}

@@ -1,63 +1,354 @@
 {% comment %}
-  Sección: Iconos / Beneficios (con CSS separado)
+  Sección: Íconos / Beneficios (CSS en asset separado)
   Archivo: sections/icons-benefits.liquid
 {% endcomment %}
 
-<div class="blank-space">
-  {% for block in section.blocks %}
-    {% assign h = block.settings.altura | default: 50 %}
-    {% assign show = block.settings.show_debug %}
-    {% assign color = block.settings.debug_color | default: '#FB560A' %}
-    <div
-      style="
-        display:block;
-        width:100%;
-        height: {{ h }}px;
-        {% if show %}background: {{ color }}33; outline: 1px dashed {{ color }};{% endif %}
-      ">
+{{ 'section-icons-benefits.css' | asset_url | stylesheet_tag }}
+
+{%- assign sec_id = section.id -%}
+
+{%- comment -%} Load chosen font for this section {%- endcomment -%}
+{%- style -%}
+  {{ section.settings.font_picker | font_face: font_display: 'swap' }}
+{%- endstyle -%}
+
+<section class="bb-benefits {% if section.settings.auto_center %}is-autocenter{% endif %}" id="bb-benefits-{{ sec_id }}">
+  <div class="bb-benefits__inner page-width">
+    {% if section.settings.heading != blank %}
+      <h2 class="bb-benefits__heading">{{ section.settings.heading }}</h2>
+    {% endif %}
+
+    <div class="bb-benefits__grid">
+      {%- for block in section.blocks -%}
+        {%- assign it_orient = block.settings.item_orientation -%}
+        {%- if it_orient == 'inherit' -%}{% assign it_orient = section.settings.orientation %}{%- endif -%}
+
+        {%- assign it_gap   = block.settings.item_gap | default: section.settings.item_gap -%}
+        {%- assign it_bg    = block.settings.item_bg  | default: section.settings.bg_color -%}
+        {%- assign it_color = block.settings.item_color | default: section.settings.text_color -%}
+
+        {%- assign it_hov_color  = block.settings.item_hover_color  | default: section.settings.hover_text_color -%}
+        {%- assign it_hov_bg     = block.settings.item_hover_bg     | default: section.settings.hover_bg_color -%}
+        {%- assign it_hov_border = block.settings.item_hover_border | default: section.settings.hover_border_color -%}
+
+        {%- assign it_icon_shape_raw = block.settings.icon_shape -%}
+        {%- if it_icon_shape_raw == 'inherit' or it_icon_shape_raw == blank -%}
+          {%- assign it_icon_shape = section.settings.icon_shape -%}
+        {%- else -%}
+          {%- assign it_icon_shape = it_icon_shape_raw -%}
+        {%- endif -%}
+
+        {%- assign it_icon_size  = block.settings.icon_box_size -%}
+        {%- if it_icon_size == 0 or it_icon_size == blank -%}{%- assign it_icon_size = section.settings.icon_box_size -%}{%- endif -%}
+
+        {%- assign it_icon_pad   = block.settings.icon_box_padding -%}
+        {%- if it_icon_pad == 0 or it_icon_pad == blank -%}{%- assign it_icon_pad = section.settings.icon_box_padding -%}{%- endif -%}
+
+        {%- assign it_icon_radius= block.settings.icon_box_radius -%}
+        {%- if it_icon_radius == 0 or it_icon_radius == blank -%}{%- assign it_icon_radius = section.settings.icon_box_radius -%}{%- endif -%}
+
+        {%- assign it_icon_border_w = block.settings.icon_border_width -%}
+        {%- if it_icon_border_w == 0 or it_icon_border_w == blank -%}{%- assign it_icon_border_w = section.settings.icon_border_width -%}{%- endif -%}
+
+        {%- assign it_icon_border_c = block.settings.icon_border_color | default: section.settings.icon_border_color -%}
+        {%- assign it_icon_bg       = block.settings.icon_box_bg      | default: section.settings.icon_box_bg -%}
+
+        {%- assign it_effect_raw = block.settings.hover_effect -%}
+        {%- if it_effect_raw == 'inherit' or it_effect_raw == blank -%}
+          {%- assign it_effect = section.settings.hover_effect -%}
+        {%- else -%}
+          {%- assign it_effect = it_effect_raw -%}
+        {%- endif -%}
+
+        {%- assign it_shadow_lvl = block.settings.hover_shadow_level | default: section.settings.hover_shadow_level -%}
+        {%- assign it_scale      = block.settings.hover_scale        | default: section.settings.hover_scale -%}
+        {%- assign it_rotate     = block.settings.hover_rotate       | default: section.settings.hover_rotate -%}
+        {%- assign it_outline_w  = block.settings.hover_outline_width| default: section.settings.hover_outline_width -%}
+
+        <div class="bb-benefit is-{{ it_orient }} eff-{{ it_effect }} sh-{{ it_shadow_lvl }}"
+             style="
+               --item-gap: {{ it_gap }}px;
+               --item-color: {{ it_color }};
+               --item-bg: {{ it_bg }};
+               --item-hov-color: {{ it_hov_color }};
+               --item-hov-bg: {{ it_hov_bg }};
+               --item-hov-border: {{ it_hov_border }};
+               --icon-box-size: {{ it_icon_size }}px;
+               --icon-box-padding: {{ it_icon_pad }}px;
+               --icon-box-radius: {{ it_icon_radius }}px;
+               --icon-border-width: {{ it_icon_border_w }}px;
+               --icon-border-color: {{ it_icon_border_c }};
+               --icon-box-bg: {{ it_icon_bg }};
+               --hov-scale: {{ it_scale }};
+               --hov-rotate: {{ it_rotate }}deg;
+               --hov-outline-w: {{ it_outline_w }}px;
+               --hov-duration: {{ section.settings.hover_duration }}ms;
+               --hov-ease: {{ section.settings.hover_ease }};
+             "
+             {{ block.shopify_attributes }}>
+
+          {%- if block.settings.link_url != blank -%}
+            <a class="bb-benefit__link" href="{{ block.settings.link_url }}" {% if section.settings.link_target_blank %}target="_blank" rel="noopener"{% endif %}>
+          {%- endif -%}
+
+          <div class="bb-benefit__icon" aria-hidden="true">
+            <span class="bb-icon-wrap shape-{{ it_icon_shape }}">
+              {%- if block.settings.svg_code != blank -%}
+                <span class="bb-svg-wrapper">{{ block.settings.svg_code }}</span>
+              {%- elsif block.settings.icon_image != blank -%}
+                {%- assign img = block.settings.icon_image -%}
+                <img
+                  src="{{ img | image_url: width: 256 }}"
+                  width="{{ img.width }}"
+                  height="{{ img.height }}"
+                  loading="lazy"
+                  alt="{{ block.settings.icon_alt | escape }}"
+                >
+              {%- else -%}
+                <span class="bb-placeholder"></span>
+              {%- endif -%}
+            </span>
+          </div>
+
+          <div class="bb-benefit__text">
+            {% if block.settings.title != blank %}
+              <div class="bb-benefit__title">{{ block.settings.title }}</div>
+            {% endif %}
+            {% if block.settings.subtitle != blank %}
+              <div class="bb-benefit__subtitle">{{ block.settings.subtitle }}</div>
+            {% endif %}
+          </div>
+
+          {%- if block.settings.link_url != blank -%}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
     </div>
-  {% endfor %}
-</div>
+  </div>
+
+  {%- comment -%} Expose section-level CSS variables {%- endcomment -%}
+  <style>
+    #bb-benefits-{{ sec_id }}{
+      --bb-text-color: {{ section.settings.text_color }};
+      --bb-bg: {{ section.settings.bg_color }};
+      --bb-icon-size: {{ section.settings.icon_size }}px;
+      --bb-title-size: {{ section.settings.title_size }}px;
+      --bb-subtitle-size: {{ section.settings.subtitle_size }}px;
+      --bb-gap: {{ section.settings.grid_gap }}px;
+      --bb-padding-block: {{ section.settings.pad_y }}px;
+      --bb-padding-inline: {{ section.settings.pad_x }}px;
+      --bb-cols-desktop: {{ section.settings.columns_desktop }};
+      --bb-cols-tablet: {{ section.settings.columns_tablet }};
+      --bb-cols-mobile: {{ section.settings.columns_mobile }};
+      --bb-align: {{ section.settings.align }};
+      --bb-item-align: {{ section.settings.item_align }};
+
+      /* Typography */
+      font-family: {{ section.settings.font_picker.family }}, {{ section.settings.font_picker.fallback_families }};
+      font-weight: {{ section.settings.font_weight }};
+      font-style: {{ section.settings.font_style }};
+    }
+  </style>
+</section>
 
 {% schema %}
 {
-  "name": "Blank space (Espacio)",
-  "settings": [],
+  "name": "Íconos / Beneficios",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "Título De La Sección (Opcional)", "default": "Beneficios" },
+
+    { "type": "checkbox", "id": "auto_center", "label": "Centrado Automático Del Grid", "default": false },
+
+    { "type": "font_picker", "id": "font_picker", "label": "Tipografía", "default": "inter_n4" },
+    { "type": "select", "id": "font_weight", "label": "Peso De Fuente", "default": "600",
+      "options": [
+        { "value": "100", "label": "Thin 100" },
+        { "value": "200", "label": "Extra Light 200" },
+        { "value": "300", "label": "Light 300" },
+        { "value": "400", "label": "Regular 400" },
+        { "value": "500", "label": "Medium 500" },
+        { "value": "600", "label": "Semibold 600" },
+        { "value": "700", "label": "Bold 700" },
+        { "value": "800", "label": "Extra Bold 800" },
+        { "value": "900", "label": "Black 900" }
+      ]
+    },
+    { "type": "select", "id": "font_style", "label": "Estilo De Fuente", "default": "normal",
+      "options": [
+        { "value": "normal", "label": "Normal" },
+        { "value": "italic", "label": "Itálica" }
+      ]
+    },
+
+    { "type": "color", "id": "text_color", "label": "Color De Texto E Íconos", "default": "#111111" },
+    { "type": "color", "id": "bg_color", "label": "Color De Fondo", "default": "#ffffff" },
+
+    { "type": "range", "id": "icon_size", "label": "Tamaño Del Ícono (px)", "min": 20, "max": 120, "step": 2, "default": 36 },
+    { "type": "range", "id": "title_size", "label": "Tamaño De Título (px)", "min": 10, "max": 36, "step": 1, "default": 16 },
+    { "type": "range", "id": "subtitle_size", "label": "Tamaño De Subtítulo (px)", "min": 10, "max": 28, "step": 1, "default": 14 },
+
+    { "type": "range", "id": "grid_gap", "label": "Espacio Entre Columnas (px)", "min": 0, "max": 48, "step": 2, "default": 24 },
+    { "type": "range", "id": "pad_y", "label": "Padding Vertical (px)", "min": 0, "max": 120, "step": 4, "default": 32 },
+    { "type": "range", "id": "pad_x", "label": "Padding Horizontal (px)", "min": 0, "max": 120, "step": 4, "default": 0 },
+
+    { "type": "select", "id": "align", "label": "Alineación Del Bloque", "default": "center",
+      "options": [
+        { "value": "left", "label": "Izquierda" },
+        { "value": "center", "label": "Centrado" },
+        { "value": "right", "label": "Derecha" }
+      ]
+    },
+    { "type": "select", "id": "item_align", "label": "Alineación De Cada Ítem", "default": "center",
+      "options": [
+        { "value": "flex-start", "label": "Izquierda" },
+        { "value": "center", "label": "Centrado" },
+        { "value": "flex-end", "label": "Derecha" }
+      ]
+    },
+
+    { "type": "select", "id": "orientation", "label": "Orientación Por Defecto", "default": "vertical",
+      "options": [
+        { "value": "vertical", "label": "Vertical" },
+        { "value": "horizontal", "label": "Horizontal" }
+      ]
+    },
+
+    { "type": "header", "content": "Hover (Global)" },
+    { "type": "select", "id": "hover_effect", "label": "Efecto Al Pasar El Mouse", "default": "color-swap",
+      "options": [
+        { "value": "none", "label": "Ninguno" },
+        { "value": "color-swap", "label": "Cambiar Colores" },
+        { "value": "elevate", "label": "Elevar Con Sombra" },
+        { "value": "scale", "label": "Escala Ligera" },
+        { "value": "outline", "label": "Anillo/Outline" },
+        { "value": "rotate", "label": "Rotar 5°" },
+        { "value": "underline-title", "label": "Subrayar Título" }
+      ]
+    },
+    { "type": "color", "id": "hover_text_color", "label": "Color De Texto/Ícono (Hover)", "default": "#111111" },
+    { "type": "color", "id": "hover_bg_color", "label": "Fondo (Hover)", "default": "#f5f5f5" },
+    { "type": "color", "id": "hover_border_color", "label": "Borde (Hover)", "default": "#111111" },
+    { "type": "range", "id": "hover_shadow_level", "label": "Nivel De Sombra (0–3)", "min": 0, "max": 3, "step": 1, "default": 1 },
+    { "type": "range", "id": "hover_scale", "label": "Escala (Hover)", "min": 1.0, "max": 1.2, "step": 0.1, "default": 1.0 },
+    { "type": "range", "id": "hover_rotate", "label": "Rotación (°)", "min": 0, "max": 10, "step": 1, "default": 5 },
+    { "type": "range", "id": "hover_outline_width", "label": "Grosor Outline (px)", "min": 0, "max": 6, "step": 1, "default": 2 },
+    { "type": "range", "id": "hover_duration", "label": "Duración De Transición (ms)", "min": 80, "max": 800, "step": 20, "default": 220 },
+    { "type": "select", "id": "hover_ease", "label": "Curva De Transición", "default": "ease",
+      "options": [
+        { "value": "ease", "label": "ease" },
+        { "value": "ease-in", "label": "ease-in" },
+        { "value": "ease-out", "label": "ease-out" },
+        { "value": "linear", "label": "linear" }
+      ]
+    },
+
+    { "type": "header", "content": "Contenedor Del Ícono (Global)" },
+    { "type": "select", "id": "icon_shape", "label": "Forma", "default": "none",
+      "options": [
+        { "value": "none", "label": "Sin Fondo" },
+        { "value": "square", "label": "Cuadrado" },
+        { "value": "rounded", "label": "Redondeado" },
+        { "value": "circle", "label": "Círculo" },
+        { "value": "pill", "label": "Pill/Cápsula" }
+      ]
+    },
+    { "type": "range", "id": "icon_box_size", "label": "Tamaño Contenedor (px)", "min": 28, "max": 120, "step": 2, "default": 44 },
+    { "type": "range", "id": "icon_box_padding", "label": "Padding Interno (px)", "min": 0, "max": 24, "step": 1, "default": 8 },
+    { "type": "range", "id": "icon_box_radius", "label": "Radio (px, Si Aplica)", "min": 0, "max": 60, "step": 1, "default": 12 },
+    { "type": "color", "id": "icon_box_bg", "label": "Fondo Del Contenedor", "default": "transparent" },
+    { "type": "range", "id": "icon_border_width", "label": "Borde (px)", "min": 0, "max": 4, "step": 1, "default": 0 },
+    { "type": "color", "id": "icon_border_color", "label": "Color Del Borde", "default": "#e5e5e5" },
+
+    { "type": "header", "content": "Layout" },
+    { "type": "range", "id": "item_gap", "label": "Espaciado Ícono–Texto (px)", "min": 0, "max": 48, "step": 1, "default": 8 },
+    { "type": "range", "id": "columns_desktop", "label": "Columnas En Desktop", "min": 2, "max": 6, "step": 1, "default": 4 },
+    { "type": "range", "id": "columns_tablet", "label": "Columnas En Tablet", "min": 1, "max": 4, "step": 1, "default": 3 },
+    { "type": "range", "id": "columns_mobile", "label": "Columnas En Móvil", "min": 1, "max": 3, "step": 1, "default": 2 },
+
+    { "type": "header", "content": "Enlaces" },
+    { "type": "checkbox", "id": "link_target_blank", "label": "Abrir Enlaces En Nueva Pestaña", "default": false }
+  ],
   "blocks": [
     {
-      "type": "space",
-      "name": "Space",
+      "type": "benefit",
+      "name": "Ícono + Texto",
       "settings": [
-        {
-          "type": "range",
-          "id": "altura",
-          "label": "Height (px)",
-          "min": 10,
-          "max": 500,
-          "step": 10,
-          "default": 80
+        { "type": "select", "id": "item_orientation", "label": "Orientación Del Ítem", "default": "inherit",
+          "options": [
+            { "value": "inherit", "label": "Heredar De La Sección" },
+            { "value": "vertical", "label": "Vertical" },
+            { "value": "horizontal", "label": "Horizontal" }
+          ]
         },
-        {
-          "type": "checkbox",
-          "id": "show_debug",
-          "label": "Show debug color",
-          "default": true
+
+        { "type": "range", "id": "item_gap", "label": "Espaciado Ícono–Texto (px)", "min": 0, "max": 48, "step": 1, "default": 8 },
+
+        { "type": "color", "id": "item_color", "label": "Color De Ícono/Texto (Ítem)", "default": "#111111" },
+        { "type": "color", "id": "item_bg", "label": "Fondo (Ítem)", "default": "transparent" },
+
+        { "type": "header", "content": "Hover (Ítem)" },
+        { "type": "select", "id": "hover_effect", "label": "Efecto Hover (Ítem)", "default": "inherit",
+          "options": [
+            { "value": "inherit", "label": "Heredar De La Sección" },
+            { "value": "none", "label": "Ninguno" },
+            { "value": "color-swap", "label": "Cambiar Colores" },
+            { "value": "elevate", "label": "Elevar Con Sombra" },
+            { "value": "scale", "label": "Escala Ligera" },
+            { "value": "outline", "label": "Anillo/Outline" },
+            { "value": "rotate", "label": "Rotar 5°" },
+            { "value": "underline-title", "label": "Subrayar Título" }
+          ]
         },
-        {
-          "type": "color",
-          "id": "debug_color",
-          "label": "Debug color",
-          "default": "#00ff00"
-        }
+        { "type": "color", "id": "item_hover_color", "label": "Color Texto/Ícono (Hover)", "default": "#111111" },
+        { "type": "color", "id": "item_hover_bg", "label": "Fondo (Hover)", "default": "#f5f5f5" },
+        { "type": "color", "id": "item_hover_border", "label": "Borde (Hover)", "default": "#111111" },
+        { "type": "range", "id": "hover_shadow_level", "label": "Sombra (0–3)", "min": 0, "max": 3, "step": 1, "default": 0 },
+
+        { "type": "range", "id": "hover_scale", "label": "Escala (Hover)", "min": 1.0, "max": 1.2, "step": 0.1, "default": 1.0 },
+
+        { "type": "range", "id": "hover_rotate", "label": "Rotación (°)", "min": 0, "max": 10, "step": 1, "default": 0 },
+        { "type": "range", "id": "hover_outline_width", "label": "Grosor Outline (px)", "min": 0, "max": 6, "step": 1, "default": 0 },
+
+        { "type": "header", "content": "Contenedor Del Ícono (Ítem)" },
+        { "type": "select", "id": "icon_shape", "label": "Forma", "default": "inherit",
+          "options": [
+            { "value": "inherit", "label": "Heredar De La Sección" },
+            { "value": "none", "label": "Sin Fondo" },
+            { "value": "square", "label": "Cuadrado" },
+            { "value": "rounded", "label": "Redondeado" },
+            { "value": "circle", "label": "Círculo" },
+            { "value": "pill", "label": "Pill/Cápsula" }
+          ]
+        },
+        { "type": "range", "id": "icon_box_size", "label": "Tamaño Contenedor (px, 0=Heredar)", "min": 0, "max": 120, "step": 2, "default": 0 },
+        { "type": "range", "id": "icon_box_padding", "label": "Padding Interno (px, 0=Heredar)", "min": 0, "max": 24, "step": 1, "default": 0 },
+        { "type": "range", "id": "icon_box_radius", "label": "Radio (px, 0=Heredar)", "min": 0, "max": 60, "step": 1, "default": 0 },
+        { "type": "range", "id": "icon_border_width", "label": "Borde (px, 0=Heredar)", "min": 0, "max": 4, "step": 1, "default": 0 },
+        { "type": "color", "id": "icon_border_color", "label": "Color Del Borde", "default": "#e5e5e5" },
+        { "type": "color", "id": "icon_box_bg", "label": "Fondo Del Contenedor", "default": "transparent" },
+
+        { "type": "image_picker", "id": "icon_image", "label": "Ícono Como Imagen (PNG/SVG/JPG)" },
+        { "type": "textarea", "id": "svg_code", "label": "Pegar SVG (Opcional)" },
+        { "type": "text", "id": "icon_alt", "label": "Texto Alternativo Del Ícono" },
+
+        { "type": "text", "id": "title", "label": "Título", "default": "Envío A Todo México" },
+        { "type": "text", "id": "subtitle", "label": "Subtítulo (Opcional)" },
+
+        { "type": "url", "id": "link_url", "label": "Enlace (Opcional)" }
       ]
     }
   ],
+  "max_blocks": 12,
   "presets": [
     {
-      "name": "Blank space (Espacio)",
-      "category": "Design",
+      "name": "Íconos / Beneficios",
+      "category": "Secciones",
       "blocks": [
-        { "type": "space" }
+        { "type": "benefit", "settings": { "title": "Envío A Todo México" } },
+        { "type": "benefit", "settings": { "title": "Garantía" } },
+        { "type": "benefit", "settings": { "title": "Pagos Seguros" } },
+        { "type": "benefit", "settings": { "title": "Atención Personalizada" } }
       ]
     }
   ]

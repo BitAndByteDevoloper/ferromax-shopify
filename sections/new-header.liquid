@@ -1,0 +1,448 @@
+{% comment %}
+  Seccion de Nuevo Encabezado 
+  Archivo: sections/new-header.liquid
+{% endcomment %}
+
+<link rel="stylesheet" href="{{ 'section-new-header.css' | asset_url }}">
+
+{%- style -%}
+/* Carga de fuentes por bloque dentro de <style> */
+{%- for block in section.blocks -%}
+  {%- if block.type == 'menu' and block.settings.use_theme_font == false and block.settings.menu_font != blank -%}
+    {{ block.settings.menu_font | font_face: font_display: 'swap' }}
+  {%- endif -%}
+  {%- if block.type == 'search' and block.settings.use_theme_font_search == false and block.settings.search_font != blank -%}
+    {{ block.settings.search_font | font_face: font_display: 'swap' }}
+  {%- endif -%}
+{%- endfor %}
+
+/* Variables por sección */
+#shopify-section-{{ section.id }}{
+  --nh-max: {{ section.settings.content_max_width }}px;
+
+  /* fondo del header (escritorio y móvil) */
+  --header-bg: {{ section.settings.header_bg_color | default: '#ffffff' }};
+
+  /* separador y sombra */
+  --sep-thickness: {{ section.settings.separator_thickness }}px;
+  --sep-color: {{ section.settings.separator_color }};
+  --sh-y: {{ section.settings.shadow_y }}px;
+  --sh-blur: {{ section.settings.shadow_blur }}px;
+  --sh-spread: {{ section.settings.shadow_spread }}px;
+  --sh-color: {{ section.settings.shadow_color }};
+}
+{%- endstyle -%}
+
+{%- assign drawer_menu = blank -%}
+{%- for b in section.blocks -%}
+  {%- if b.type == 'menu' and b.settings.menu != blank and drawer_menu == blank -%}
+    {%- assign drawer_menu = b.settings.menu -%}
+  {%- endif -%}
+{%- endfor -%}
+
+<input id="nh-drawer-{{ section.id }}" class="nh-drawer__toggle" type="checkbox" hidden>
+
+{%- assign mobile_logo_img = blank -%}
+{%- assign mobile_logo_alt = shop.name -%}
+{%- assign mobile_logo_h = 48 -%}
+{%- for b in section.blocks -%}
+  {%- if b.type == 'logo' -%}
+    {%- assign mobile_logo_img = b.settings.image -%}
+    {%- assign mobile_logo_alt = b.settings.alt | default: shop.name -%}
+    {%- assign mobile_logo_h = b.settings.logo_height | default: 48 -%}
+    {%- break -%}
+  {%- endif -%}
+{%- endfor -%}
+
+<header
+  class="nh-header
+    {% if section.settings.show_separator %}has-separator{% endif %}
+    {% if section.settings.show_shadow %}has-shadow{% endif %}"
+  data-section-id="{{ section.id }}"
+  data-debug="{{ section.settings.show_guides }}"
+  data-sticky="{% if section.settings.sticky_header %}true{% else %}false{% endif %}"
+>
+  <div class="nh-row"><div class="nh-inner">
+
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+
+        {%- when 'logo' -%}
+          {%- assign img = block.settings.image -%}
+          {%- if img != blank -%}{%- assign calc_w = block.settings.logo_height | times: img.aspect_ratio | round -%}{%- endif -%}
+          <div class="nh-part nh-part--logo" {{ block.shopify_attributes }}
+               style="
+                 --pt: {{ block.settings.pad_top }}px; --pr: {{ block.settings.pad_right }}px;
+                 --pb: {{ block.settings.pad_bottom }}px; --pl: {{ block.settings.pad_left }}px;
+                 --minw: {{ block.settings.min_w }}px; --minh: {{ block.settings.min_h }}px;
+                 --logo-h: {{ block.settings.logo_height }}px;">
+            <a href="{{ routes.root_url }}" class="nh-logo" aria-label="{{ shop.name }}">
+              {%- if img != blank -%}
+                {{ img | image_url: width: 1200 | image_tag:
+                    widths: '160,240,320,480,600,960,1200',
+                    sizes: '(max-width: 480px) 160px, 240px',
+                    width: calc_w, height: block.settings.logo_height,
+                    alt: block.settings.alt | default: img.alt | default: shop.name,
+                    loading: 'lazy', class: 'nh-logo__img' }}
+              {%- else -%}
+                <span class="nh-logo nh-logo--text">{{ block.settings.alt | default: shop.name }}</span>
+              {%- endif -%}
+            </a>
+          </div>
+
+        {%- when 'menu' -%}
+          <nav class="nh-part nh-part--menu" aria-label="Menú principal" {{ block.shopify_attributes }}
+               style="
+                 --pt: {{ block.settings.pad_top }}px; --pr: {{ block.settings.pad_right }}px;
+                 --pb: {{ block.settings.pad_bottom }}px; --pl: {{ block.settings.pad_left }}px;
+                 --minw: {{ block.settings.min_w }}px; --minh: {{ block.settings.min_h }}px;
+                 --menu-gap: {{ block.settings.gap }}px; --menu-size: {{ block.settings.menu_font_size }}px;
+                 --menu-weight: {{ block.settings.menu_font_weight }};
+                 --menu-color: {{ block.settings.menu_color }}; --menu-hover: {{ block.settings.menu_hover_color }};
+                 --menu-ls: {{ block.settings.menu_letter_spacing }}px;
+                 {%- if block.settings.use_theme_font -%}--menu-font: inherit;{%- else -%}
+                 --menu-font: {{ block.settings.menu_font.family }}, {{ block.settings.menu_font.fallback_families }};{%- endif -%}">
+            {%- if block.settings.menu and block.settings.menu.links.size > 0 -%}
+              <ul class="nh-menu">
+                {%- for link in block.settings.menu.links -%}
+                  <li class="nh-menu__item"><a class="nh-menu__link" href="{{ link.url }}">{{ link.title }}</a></li>
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+          </nav>
+
+        {%- when 'search' -%}
+          <div class="nh-part nh-part--search" {{ block.shopify_attributes }}
+               style="
+                 --pt: {{ block.settings.pad_top }}px; --pr: {{ block.settings.pad_right }}px;
+                 --pb: {{ block.settings.pad_bottom }}px; --pl: {{ block.settings.pad_left }}px;
+                 --minw: {{ block.settings.min_w }}px; --minh: {{ block.settings.min_h }}px;
+                 --fixedw: {{ block.settings.fixed_width }}px;
+                 --search-size: {{ block.settings.search_font_size }}px;
+                 --search-weight: {{ block.settings.search_font_weight }};
+                 --search-color: {{ block.settings.search_color }};
+                 --search-ph: {{ block.settings.search_placeholder_color }};
+                 --search-ls: {{ block.settings.search_letter_spacing }}px;
+                 {%- if block.settings.use_theme_font_search -%}--search-font: inherit;{%- else -%}
+                 --search-font: {{ block.settings.search_font.family }}, {{ block.settings.search_font.fallback_families }};{%- endif -%}
+                 --search-icon-size: {{ block.settings.search_icon_size }}px;
+                 --search-icon-color: {{ block.settings.search_icon_color }};
+                 --search-icon-hover: {{ block.settings.search_icon_hover_color }};"
+               data-grow="{% if block.settings.grow %}true{% else %}false{% endif %}">
+            <form action="{{ routes.search_url }}" method="get" role="search" class="nh-search__form">
+              <input class="nh-search__input" type="search" name="q" placeholder="{{ block.settings.placeholder | escape }}">
+              <button class="nh-search__btn" aria-label="Buscar">
+                {% if block.settings.search_icon_mode == 'image' and block.settings.search_icon_image != blank %}
+                  {{ block.settings.search_icon_image | image_url: width: 96 | image_tag:
+                       width: block.settings.search_icon_size, height: block.settings.search_icon_size,
+                       alt: 'Buscar', loading: 'lazy', class: 'nh-search__icon-img' }}
+                {% else %}
+                  <svg class="nh-search__icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M11 4a7 7 0 105.292 12.292l3.707 3.707 1.414-1.414-3.707-3.707A7 7 0 0011 4z"/>
+                  </svg>
+                {% endif %}
+              </button>
+            </form>
+          </div>
+
+        {%- when 'actions' -%}
+          <div class="nh-part nh-part--actions" {{ block.shopify_attributes }}
+               style="
+                 --pt: {{ block.settings.pad_top }}px; --pr: {{ block.settings.pad_right }}px;
+                 --pb: {{ block.settings.pad_bottom }}px; --pl: {{ block.settings.pad_left }}px;
+                 --minw: {{ block.settings.min_w }}px; --minh: {{ block.settings.min_h }}px;
+                 --actions-gap: {{ block.settings.gap }}px; --icon-size: {{ block.settings.icon_size }}px;
+                 --icon-color: {{ block.settings.icon_color }}; --icon-hover: {{ block.settings.icon_hover_color }};"
+               data-grow="false"
+               data-container="{% if block.settings.show_icon_container %}true{% else %}false{% endif %}">
+            <div class="nh-actions">
+              {%- if block.settings.show_cart -%}
+                <a class="nh-action nh-cart" href="{{ routes.cart_url }}" aria-label="{{ 'sections.cart.title' | t }}">
+                  {%- if block.settings.cart_icon_mode == 'image' and block.settings.cart_icon_image != blank -%}
+                    {{ block.settings.cart_icon_image | image_url: width: 128 | image_tag:
+                         width: block.settings.icon_size, height: block.settings.icon_size,
+                         alt: 'Carrito', loading: 'lazy', class: 'nh-icon-img' }}
+                  {%- else -%}
+                    <svg class="nh-icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M7 4h-2l-1 2v2h2l3.6 7.59-1.35 2.41A1 1 0 0010 20h10v-2H11.42"/>
+                    </svg>
+                  {%- endif -%}
+                  <span class="nh-cart__badge" {% unless cart != empty %}hidden{% endunless %}>{{ cart.item_count }}</span>
+                </a>
+              {%- endif -%}
+
+              {%- if block.settings.show_account -%}
+                <a class="nh-action nh-account" href="{{ routes.account_url }}" aria-label="{{ 'customer.account.title' | t }}">
+                  {%- if block.settings.account_icon_mode == 'image' and block.settings.account_icon_image != blank -%}
+                    {{ block.settings.account_icon_image | image_url: width: 128 | image_tag:
+                         width: block.settings.icon_size, height: block.settings.icon_size,
+                         alt: 'Cuenta', loading: 'lazy', class: 'nh-icon-img' }}
+                  {%- else -%}
+                    <svg class="nh-icon" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"/>
+                    </svg>
+                  {%- endif -%}
+                </a>
+              {%- endif -%}
+            </div>
+          </div>
+
+      {%- endcase -%}
+    {%- endfor -%}
+
+  </div></div>
+</header>
+
+<!-- ===== MOBILE HEADER (Automático, no configurable) ===== -->
+<div class="nh-mobile-only"
+     data-sticky="{% if section.settings.sticky_header %}true{% else %}false{% endif %}"
+     style="--m-logo-h: {{ mobile_logo_h }}px">
+
+    {%- if drawer_menu and drawer_menu.links.size > 0 -%}
+      <label class="nh-burger" for="nh-drawer-{{ section.id }}" aria-label="Abrir menú">
+        <img class="nh-burger__img" src="https://cdn.shopify.com/s/files/1/0766/5680/4063/files/IconoMenu.png?v=1758334664" alt="Menú" width="18" height="18" loading="lazy" decoding="async">
+      </label>
+    {%- else -%}
+      <span class="nh-burger nh-burger--placeholder" aria-hidden="true">
+        <img class="nh-burger__img" src="https://cdn.shopify.com/s/files/1/0766/5680/4063/files/IconoMenu.png?v=1758334664" alt="" width="18" height="18" loading="lazy" decoding="async">
+      </span>
+    {%- endif -%}
+
+  <a href="{{ routes.root_url }}" class="nh-only-logo" aria-label="{{ shop.name }}">
+    {%- if mobile_logo_img != blank -%}
+      {%- assign calc_w = mobile_logo_h | times: mobile_logo_img.aspect_ratio | round -%}
+      {{ mobile_logo_img | image_url: width: 1200 | image_tag:
+           widths: '160,240,320,480,600,960,1200',
+           sizes: '50vw', width: calc_w, height: mobile_logo_h,
+           alt: mobile_logo_alt, loading: 'lazy', class: 'nh-only-logo__img' }}
+    {%- else -%}
+      <span class="nh-only-logo--text">{{ mobile_logo_alt }}</span>
+    {%- endif -%}
+  </a>
+
+  <div class="nh-m-actions">
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'actions' -%}
+        {%- if block.settings.show_cart -%}
+          <a class="nh-action nh-cart" href="{{ routes.cart_url }}" aria-label="{{ 'sections.cart.title' | t }}">
+            {%- if block.settings.cart_icon_mode == 'image' and block.settings.cart_icon_image != blank -%}
+              {{ block.settings.cart_icon_image | image_url: width: 128 | image_tag:
+                   width: block.settings.icon_size, height: block.settings.icon_size,
+                   alt: 'Carrito', loading: 'lazy', class: 'nh-icon-img' }}
+            {%- else -%}
+              <svg class="nh-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7 4h-2l-1 2v2h2l3.6 7.59-1.35 2.41A1 1 0 0010 20h10v-2H11.42"/>
+              </svg>
+            {%- endif -%}
+            <span class="nh-cart__badge" {% unless cart != empty %}hidden{% endunless %}>{{ cart.item_count }}</span>
+          </a>
+        {%- endif -%}
+        {%- if block.settings.show_account -%}
+          <a class="nh-action nh-account" href="{{ routes.account_url }}" aria-label="{{ 'customer.account.title' | t }}">
+            {%- if block.settings.account_icon_mode == 'image' and block.settings.account_icon_image != blank -%}
+              {{ block.settings.account_icon_image | image_url: width: 128 | image_tag:
+                   width: block.settings.icon_size, height: block.settings.icon_size,
+                   alt: 'Cuenta', loading: 'lazy', class: 'nh-icon-img' }}
+            {%- else -%}
+              <svg class="nh-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"/>
+              </svg>
+            {%- endif -%}
+          </a>
+        {%- endif -%}
+        {%- break -%}
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+
+  {%- assign has_search = false -%}
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'search' -%}
+      {%- assign has_search = true -%}
+      <form action="{{ routes.search_url }}" method="get" role="search" class="nh-search__form nh-m-search">
+        <input class="nh-search__input" type="search" name="q" placeholder="{{ block.settings.placeholder | escape }}">
+        <button class="nh-search__btn" aria-label="Buscar">
+          {% if block.settings.search_icon_mode == 'image' and block.settings.search_icon_image != blank %}
+            {{ block.settings.search_icon_image | image_url: width: 96 | image_tag:
+                 width: block.settings.search_icon_size, height: block.settings.search_icon_size,
+                 alt: 'Buscar', loading: 'lazy', class: 'nh-search__icon-img' }}
+          {% else %}
+            <svg class="nh-search__icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M11 4a7 7 0 105.292 12.292l3.707 3.707 1.414-1.414-3.707-3.707A7 7 0 0011 4z"/>
+            </svg>
+          {% endif %}
+        </button>
+      </form>
+      {%- break -%}
+    {%- endif -%}
+  {%- endfor -%}
+  {%- unless has_search -%}
+    <form action="{{ routes.search_url }}" method="get" role="search" class="nh-search__form nh-m-search">
+      <input class="nh-search__input" type="search" name="q" placeholder="Buscar">
+      <button class="nh-search__btn" aria-label="Buscar">
+        <svg class="nh-search__icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M11 4a7 7 0 105.292 12.292l3.707 3.707 1.414-1.414-3.707-3.707A7 7 0 0011 4z"/>
+        </svg>
+      </button>
+    </form>
+  {%- endunless -%}
+</div>
+
+<!-- DRAWER (móvil) -->
+<div class="nh-drawer">
+  <label class="nh-drawer__overlay" for="nh-drawer-{{ section.id }}" aria-hidden="true"></label>
+  <aside class="nh-drawer__panel" role="dialog" aria-modal="true" aria-label="Menú">
+    <div class="nh-drawer__top">
+      <span class="nh-drawer__title">{{ shop.name }}</span>
+      <label for="nh-drawer-{{ section.id }}" class="nh-drawer__close" aria-label="Cerrar">&times;</label>
+    </div>
+    {%- if drawer_menu and drawer_menu.links.size > 0 -%}
+      <nav class="nh-drawer__nav" aria-label="Menú móvil">
+        <ul class="nh-drawer__list">
+          {%- for l in drawer_menu.links -%}
+            <li><a href="{{ l.url }}">{{ l.title }}</a></li>
+          {%- endfor -%}
+        </ul>
+      </nav>
+    {%- endif -%}
+  </aside>
+</div>
+
+<!-- Sticky fallback -->
+<script>
+(function(){
+  var stickyOn = "{{ section.settings.sticky_header }}" === "true";
+  if(!stickyOn) return;
+  var section = document.getElementById("shopify-section-{{ section.id }}");
+  if(!section) return;
+  var header = section.querySelector(".nh-header");
+  var mobileBar = section.querySelector(".nh-mobile-only");
+  function currentBar(){ return ( (window.innerWidth||0) <= 920 ? mobileBar : header ); }
+  function setOffset(px){ document.documentElement.style.setProperty("--nh-sticky-offset", px + "px"); }
+  function onScroll(){
+    var bar = currentBar(); if(!bar) return;
+    var shouldFix = window.scrollY > 0;
+    if(shouldFix){ bar.classList.add("is-fixed"); document.body.classList.add("nh-has-fixed"); setOffset(bar.offsetHeight||0); }
+    else{ bar.classList.remove("is-fixed"); document.body.classList.remove("nh-has-fixed"); setOffset(0); }
+  }
+  window.addEventListener("scroll", onScroll, {passive:true});
+  window.addEventListener("resize", onScroll);
+  onScroll();
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Encabezado (Nuevo)",
+  "settings": [
+    { "type": "range", "id": "content_max_width", "label": "Ancho máximo del contenido (px)", "min": 960, "max": 2000, "step": 20, "default": 1600 },
+    { "type": "checkbox", "id": "show_guides", "label": "Mostrar guías (solo editor)", "default": true },
+
+    { "type": "color", "id": "header_bg_color", "label": "Color de fondo del encabezado", "default": "#ffffff" },
+
+    { "type": "checkbox", "id": "show_separator", "label": "Mostrar línea separadora inferior", "default": false },
+    { "type": "color", "id": "separator_color", "label": "Color de la línea", "default": "#e5e5e5" },
+    { "type": "range", "id": "separator_thickness", "label": "Grosor de la línea (px)", "min": 0, "max": 8, "step": 1, "default": 1 },
+
+    { "type": "checkbox", "id": "show_shadow", "label": "Mostrar sombra inferior", "default": false },
+    { "type": "range", "id": "shadow_y", "label": "Desplazamiento Y (px)", "min": 0, "max": 30, "step": 1, "default": 8 },
+    { "type": "range", "id": "shadow_blur", "label": "Blur (px)", "min": 0, "max": 40, "step": 2, "default": 16 },
+    { "type": "range", "id": "shadow_spread", "label": "Spread (px)", "min": 0, "max": 20, "step": 1, "default": 0 },
+    { "type": "color", "id": "shadow_color", "label": "Color de la sombra", "default": "#000000" },
+
+    { "type": "checkbox", "id": "sticky_header", "label": "Fijar el encabezado al hacer scroll", "default": true }
+  ],
+  "blocks": [
+    { "type": "logo", "name": "Logo", "settings": [
+      { "type": "image_picker", "id": "image", "label": "Logo" },
+      { "type": "text", "id": "alt", "label": "Texto alternativo", "default": "Logo" },
+      { "type": "range", "id": "logo_height", "label": "Altura del logo (px)", "min": 16, "max": 240, "step": 4, "default": 64 },
+      { "type": "header", "content": "Padding (px)" },
+      { "type": "range", "id": "pad_top", "label": "Arriba", "min": 0, "max": 80, "step": 2, "default": 0 },
+      { "type": "range", "id": "pad_right", "label": "Derecha", "min": 0, "max": 80, "step": 2, "default": 12 },
+      { "type": "range", "id": "pad_bottom", "label": "Abajo", "min": 0, "max": 80, "step": 2, "default": 0 },
+      { "type": "range", "id": "pad_left", "label": "Izquierda", "min": 0, "max": 80, "step": 2, "default": 0 },
+      { "type": "header", "content": "Tamaño mínimo" },
+      { "type": "range", "id": "min_w", "label": "Min width (px)", "min": 0, "max": 600, "step": 10, "default": 0 },
+      { "type": "range", "id": "min_h", "label": "Min height (px)", "min": 0, "max": 200, "step": 2, "default": 0 }
+    ]},
+    { "type": "menu", "name": "Menú", "settings": [
+      { "type": "link_list", "id": "menu", "label": "Menú principal" },
+      { "type": "header", "content": "Tipografía" },
+      { "type": "checkbox", "id": "use_theme_font", "label": "Usar tipografía del tema", "default": true },
+      { "type": "font_picker", "id": "menu_font", "label": "Tipografía personalizada", "default": "inter_n4" },
+      { "type": "range", "id": "menu_font_size", "label": "Tamaño (px)", "min": 12, "max": 28, "step": 1, "default": 16 },
+      { "type": "range", "id": "menu_font_weight", "label": "Peso", "min": 300, "max": 900, "step": 100, "default": 500 },
+      { "type": "color", "id": "menu_color", "label": "Color", "default": "#222222" },
+      { "type": "color", "id": "menu_hover_color", "label": "Color al pasar el cursor", "default": "#ff6a00" },
+      { "type": "range", "id": "menu_letter_spacing", "label": "Espaciado entre letras (px)", "min": -1, "max": 3, "step": 0.1, "default": 0 },
+      { "type": "header", "content": "Espaciado" },
+      { "type": "range", "id": "gap", "label": "Separación entre opciones (px)", "min": 0, "max": 48, "step": 2, "default": 20 },
+      { "type": "header", "content": "Padding (px)" },
+      { "type": "range", "id": "pad_top", "label": "Arriba", "min": 0, "max": 80, "step": 2, "default": 0 },
+      { "type": "range", "id": "pad_right", "label": "Derecha", "min": 0, "max": 80, "step": 2, "default": 16 },
+      { "type": "range", "id": "pad_bottom", "label": "Abajo", "min": 0, "max": 80, "step": 2, "default": 0 },
+      { "type": "range", "id": "pad_left", "label": "Izquierda", "min": 0, "max": 80, "step": 2, "default": 16 },
+      { "type": "header", "content": "Tamaño mínimo" },
+      { "type": "range", "id": "min_w", "label": "Min width (px)", "min": 0, "max": 600, "step": 10, "default": 0 },
+      { "type": "range", "id": "min_h", "label": "Min height (px)", "min": 0, "max": 200, "step": 2, "default": 0 }
+    ]},
+    { "type": "search", "name": "Búsqueda", "settings": [
+      { "type": "text", "id": "placeholder", "label": "Texto de búsqueda", "default": "Buscar productos…" },
+      { "type": "checkbox", "id": "grow", "label": "Permitir que crezca (ocupe el espacio libre)", "default": true },
+      { "type": "range", "id": "fixed_width", "label": "Ancho base (px)", "min": 240, "max": 1200, "step": 20, "default": 720 },
+      { "type": "header", "content": "Tipografía" },
+      { "type": "checkbox", "id": "use_theme_font_search", "label": "Usar tipografía del tema", "default": true },
+      { "type": "font_picker", "id": "search_font", "label": "Tipografía personalizada", "default": "inter_n4" },
+      { "type": "range", "id": "search_font_size", "label": "Tamaño (px)", "min": 12, "max": 26, "step": 1, "default": 16 },
+      { "type": "range", "id": "search_font_weight", "label": "Peso", "min": 300, "max": 900, "step": 100, "default": 400 },
+      { "type": "range", "id": "search_letter_spacing", "label": "Espaciado entre letras (px)", "min": -1, "max": 2, "step": 0.1, "default": 0 },
+      { "type": "color", "id": "search_color", "label": "Color del texto", "default": "#222222" },
+      { "type": "color", "id": "search_placeholder_color", "label": "Color del placeholder", "default": "#999999" },
+      { "type": "header", "content": "Ícono de búsqueda" },
+      { "type": "select", "id": "search_icon_mode", "label": "Ícono de búsqueda", "default": "default",
+        "options": [ { "value": "default", "label": "Predeterminado" }, { "value": "image", "label": "Imagen personalizada" } ] },
+      { "type": "image_picker", "id": "search_icon_image", "label": "Imagen de la lupa (SVG/PNG)" },
+      { "type": "range", "id": "search_icon_size", "label": "Tamaño (px)", "min": 14, "max": 28, "step": 1, "default": 18 },
+      { "type": "color", "id": "search_icon_color", "label": "Color", "default": "#222222" },
+      { "type": "color", "id": "search_icon_hover_color", "label": "Color al pasar el cursor", "default": "#ff6a00" },
+      { "type": "header", "content": "Padding (px)" },
+      { "type": "range", "id": "pad_top", "label": "Arriba", "min": 0, "max": 80, "step": 2, "default": 0 },
+      { "type": "range", "id": "pad_right", "label": "Derecha", "min": 0, "max": 80, "step": 2, "default": 12 },
+      { "type": "range", "id": "pad_bottom", "label": "Abajo", "min": 0, "max": 80, "step": 2, "default": 0 },
+      { "type": "range", "id": "pad_left", "label": "Izquierda", "min": 0, "max": 80, "step": 2, "default": 12 },
+      { "type": "header", "content": "Tamaño mínimo" },
+      { "type": "range", "id": "min_w", "label": "Min width (px)", "min": 0, "max": 800, "step": 10, "default": 0 },
+      { "type": "range", "id": "min_h", "label": "Min height (px)", "min": 0, "max": 200, "step": 2, "default": 0 }
+    ]},
+    { "type": "actions", "name": "Acciones", "settings": [
+      { "type": "checkbox", "id": "show_cart", "label": "Mostrar carrito", "default": true },
+      { "type": "select", "id": "cart_icon_mode", "label": "Ícono de carrito", "default": "default",
+        "options": [ { "value": "default", "label": "Predeterminado" }, { "value": "image", "label": "Imagen personalizada" } ]},
+      { "type": "image_picker", "id": "cart_icon_image", "label": "Imagen de carrito (SVG/PNG)" },
+      { "type": "checkbox", "id": "show_account", "label": "Mostrar cuenta", "default": true },
+      { "type": "select", "id": "account_icon_mode", "label": "Ícono de cuenta", "default": "default",
+        "options": [ { "value": "default", "label": "Predeterminado" }, { "value": "image", "label": "Imagen personalizada" } ]},
+      { "type": "image_picker", "id": "account_icon_image", "label": "Imagen de cuenta (SVG/PNG)" },
+      { "type": "checkbox", "id": "show_icon_container", "label": "Mostrar contenedor del ícono (borde/fondo)", "default": true },
+      { "type": "header", "content": "Estilo de íconos" },
+      { "type": "range", "id": "icon_size", "label": "Tamaño (px)", "min": 12, "max": 32, "step": 2, "default": 18 },
+      { "type": "color", "id": "icon_color", "label": "Color", "default": "#222222" },
+      { "type": "color", "id": "icon_hover_color", "label": "Color al pasar el cursor", "default": "#ff6a00" },
+      { "type": "header", "content": "Padding (px)" },
+      { "type": "range", "id": "pad_top", "label": "Arriba", "min": 0, "max": 80, "step": 2, "default": 0 },
+      { "type": "range", "id": "pad_right", "label": "Derecha", "min": 0, "max": 80, "step": 2, "default": 0 },
+      { "type": "range", "id": "pad_bottom", "label": "Abajo", "min": 0, "max": 80, "step": 2, "default": 0 },
+      { "type": "range", "id": "pad_left", "label": "Izquierda", "min": 0, "max": 80, "step": 2, "default": 12 },
+      { "type": "header", "content": "Tamaño mínimo" },
+      { "type": "range", "id": "min_w", "label": "Min width (px)", "min": 0, "max": 400, "step": 10, "default": 0 },
+      { "type": "range", "id": "min_h", "label": "Min height (px)", "min": 0, "max": 200, "step": 2, "default": 0 },
+      { "type": "header", "content": "Espaciado" },
+      { "type": "range", "id": "gap", "label": "Separación entre iconos (px)", "min": 0, "max": 40, "step": 2, "default": 10 }
+    ]}
+  ],
+  "presets": [
+    { "name": "Encabezado (Nuevo)", "blocks": [ { "type": "logo" }, { "type": "menu" }, { "type": "search" }, { "type": "actions" } ] }
+  ]
+}
+{% endschema %}
